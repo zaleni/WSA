@@ -13,11 +13,11 @@ connection.
 ## Shared Runtime
 
 - The client sends `cam_high` and `cam_left_wrist`.
-- The action/state vector is 7D.
+- The action/state vector is 7-Dim. 6 joints and 1 gripper dim.
 - `JPEG_ROUNDTRIP=true` matches the reference Piper client.
 - `MANUAL_RESET=true` enables Enter-to-reset when `INIT_JOINT_POSITION` is set.
 
-## Common Env
+## Common Options
 
 - `CHECKPOINT_DIR`: checkpoint step dir or `pretrained_model` dir.
 - `STATS_KEY=real_piper`

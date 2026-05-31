@@ -42,7 +42,7 @@ Run:
 ```bash
 WS_URL=ws://127.0.0.1:8000 \
 PROMPT="Clear the junk and items off the desktop." \
-FRAME_RATE=60 \
+FRAME_RATE=24 \
 IMAGE_HISTORY_INTERVAL=15 \
 INFERENCE_MODE=sync \
 bash evaluation/Real_Lift2_Example/run_real_lift2_inference.sh
@@ -51,31 +51,37 @@ bash evaluation/Real_Lift2_Example/run_real_lift2_inference.sh
 Only set `SEND_IMAGE_HEIGHT` and `SEND_IMAGE_WIDTH` if you want a
 bandwidth/latency tradeoff.
 
-## Key Env Vars
+## Common Options
 
-Serve:
+Serve side:
 
-- `CHECKPOINT_DIR`
-- `STATS_KEY`
-- `STATS_PATH`
-- `ACTION_MODE`
-- `INFER_HORIZON`
-- `NUM_INFERENCE_STEPS`
-- `QWEN3_VL_PRETRAINED_PATH`
-- `QWEN3_VL_PROCESSOR_PATH`
-- `COSMOS_TOKENIZER_PATH_OR_NAME`
-- `DA3_MODEL_PATH_OR_NAME`
-- `DA3_CODE_ROOT`
+- `CHECKPOINT_DIR`: checkpoint step directory or `pretrained_model/` directory
+  loaded by the websocket server.
+- `HOST` and `PORT`: server bind address. Defaults to `0.0.0.0:8000`.
+- `ACTION_MODE`: action representation expected by the checkpoint, usually
+  `abs` for Lift2 checkpoints unless the checkpoint was trained with delta
+  actions.
+- `INFER_HORIZON`: number of future actions returned per request. The quick
+  start uses `50`.
+- `STATS_PATH`: optional explicit path to `stats.json`. If omitted, the server
+  uses `CHECKPOINT_DIR/stats.json`.
+- `STATS_KEY`: stats entry to read when the checkpoint stores multiple robot
+  stats.
+- `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH`, and
+  `COSMOS_TOKENIZER_PATH_OR_NAME`: override these only when using local copies
+  of the backbone, processor, or tokenizer.
 
-Run:
+Robot side:
 
-- `WS_URL`
-- `PROMPT`
-- `FRAME_RATE`
-- `IMAGE_HISTORY_INTERVAL`
-- `SEND_IMAGE_HEIGHT`
-- `SEND_IMAGE_WIDTH`
-- `INFERENCE_MODE`
+- `WS_URL`: websocket server URL, for example `ws://192.168.1.10:8000`.
+- `PROMPT`: language instruction sent with every inference request.
+- `FRAME_RATE`: robot control loop rate. The default example uses `24`. That means 24 actions are poped out in a second.
+- `IMAGE_HISTORY_INTERVAL`: camera history spacing in control frames. Keep this
+  aligned with the checkpoint setup.
+- `SEND_IMAGE_HEIGHT` and `SEND_IMAGE_WIDTH`: optional resize before network
+  transfer. Leave unset to send native camera resolution.
+- `INFERENCE_MODE`: request scheduling mode. Use `sync` for the simplest
+  blocking loop; use the defaults unless you are testing latency-aware modes.
 
 ## Smoke Test
 
