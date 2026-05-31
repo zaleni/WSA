@@ -1,21 +1,30 @@
 <p align="center">
-  <img src="assets/logo.png" alt="TBot-SA1" width="380">
+  <img src="assets/logo.png" alt="TBot-SA1" width="360">
 </p>
 
-<h3 align="center">2D-3D Latent World Action Modeling for Generalizable Robot Control</h3>
+<h3 align="center">TBot-SA<sub>1</sub>: 2D-3D Latent World Action Modeling for Generalizable Robot Control</h3>
 
 <p align="center">
-  A World-Spatial-Action embodied foundation model that unifies instruction-aligned
-  2D visual planning, action-conditioned 3D world modeling, and 3D-aware action
-  generation in a shared latent space.
+  a <strong>World-Spatial-Action</strong> embodied
+  foundation model that unifies instruction-aligned 2D visual planning,
+  action-conditioned 3D world modeling, and 3D-aware action generation.
 </p>
 
 <p align="center">
+  <a href="https://zaleni.github.io/TBot-SA1/">
+    <img src="https://img.shields.io/badge/Project%20Page-Website-2EA44F?logo=githubpages&logoColor=ffffff" alt="Project page">
+  </a>
   <a href="https://github.com/zaleni/TBot-SA1">
     <img src="https://img.shields.io/badge/Repository-GitHub-181717?logo=github" alt="GitHub repository">
   </a>
-  <a href="https://huggingface.co/zaleni/TBot-SA1-RoboTwin">
-    <img src="https://img.shields.io/badge/RoboTwin%20Model-HuggingFace-FFD21E?logo=huggingface&logoColor=000000" alt="RoboTwin model">
+  <a href="https://github.com/zaleni/TBot-SA1/blob/main/assets/WSA.pdf">
+    <img src="https://img.shields.io/badge/Paper-PDF-B31B1B?logo=adobeacrobatreader&logoColor=ffffff" alt="Paper PDF">
+  </a>
+  <a href="https://huggingface.co/collections/zaleni/tbot-sa1">
+    <img src="https://img.shields.io/badge/Models-HuggingFace-FFD21E?logo=huggingface&logoColor=000000" alt="Hugging Face models">
+  </a>
+  <a href="https://robochallenge.ai/competition/cvpr">
+    <img src="https://img.shields.io/badge/%F0%9F%8F%86%20Leaderboard-RoboChallenge-C99A00" alt="RoboChallenge leaderboard">
   </a>
 </p>
 
@@ -27,10 +36,11 @@
 
 ## 🗞️ News
 
-- 2026-05-31: Initial public release of TBot-SA1 training, evaluation, and
-  inference code.
-- 2026-05-31: Released the RoboTwin evaluation entrypoint and linked the
-  TBot-SA1 RoboTwin checkpoint.
+- [2026-05-18]: 🏆 Our fully open-source WSA model **TBot-SA1 ranked 4th worldwide and 1st among university
+  teams on the [RoboChallenge CVPR leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
+- [2026-05-31]: 🎉 Release of TBot-SA1 training, evaluation, and inference code.
+- [2026-05-31]: 🤗 Released the WSA paper and the TBot-SA1 Hugging Face
+  model collection with Base, RoboTwin, and LIBERO models.
 
 <a id="todo-list"></a>
 
@@ -40,7 +50,7 @@
 - [x] Release TBot-SA1 policy code and finetuning scripts.
 - [x] Release TBot-SA1 pretraining scripts.
 - [ ] Release paper on arxiv and citation.
-- [ ] Release results and checkpoints on more benchmarks.
+- [ ] Release results and models on more benchmarks.
 - [ ] **[Coming soon] Release TBot-SA1-Wan model code, a 6B type of WSA model using Wan2.2 video model as backbone.**
 - [ ] **Release TBot-SA1-Wan model weights and results.**
 
@@ -146,18 +156,22 @@ cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_D
 
 | Name | Type | Usage |
 | --- | --- | --- |
-| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | Policy checkpoint | RoboTwin evaluation and finetuning initialization |
+| [TBot-SA1-Base](https://huggingface.co/zaleni/TBot-SA1-Base) | Base policy model | General initialization and downstream finetuning |
+| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | RoboTwin policy model | RoboTwin evaluation and finetuning initialization |
+| [TBot-SA1-LIBERO](https://huggingface.co/zaleni/TBot-SA1-LIBERO) | LIBERO policy model | LIBERO evaluation and finetuning initialization |
 | `Qwen/Qwen3-VL-2B-Instruct` | VLM backbone and processor | `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH` |
 | `nvidia/Cosmos-Tokenizer-CI8x8` | Cosmos tokenizer | `COSMOS_TOKENIZER_PATH_OR_NAME` |
 | `depth-anything/DA3-LARGE-1.1` | 3D teacher | Training or evaluation with the 3D teacher enabled |
 
-The released RoboTwin checkpoint can be loaded directly from Hugging Face:
+All released models are available in the
+[TBot-SA1 Hugging Face collection](https://huggingface.co/collections/zaleni/tbot-sa1).
+For RoboTwin evaluation, load the released RoboTwin model:
 
 ```bash
 PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin
 ```
 
-For standard RoboTwin action evaluation with the released checkpoint, use
+For standard RoboTwin action evaluation with the released model, use
 `DISABLE_DA3_TEACHER_FOR_EVAL=true`.
 
 ## RoboTwin Evaluation
