@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://zaleni.github.io/TBot-SA1/"><img src="https://img.shields.io/badge/Project%20Page-Website-2EA44F?logo=githubpages&logoColor=ffffff" alt="Project page"></a>
+  <a href="https://zaleni.github.io/TBot-SA1/"><img src="https://img.shields.io/badge/Project%20Page-Website-2EA44F?logo=googlechrome&logoColor=ffffff" alt="Project page"></a>
   <a href="https://github.com/zaleni/TBot-SA1"><img src="https://img.shields.io/badge/Repository-GitHub-181717?logo=github" alt="GitHub repository"></a>
   <a href="https://github.com/zaleni/TBot-SA1/blob/main/assets/WSA.pdf"><img src="https://img.shields.io/badge/Paper-PDF-B31B1B?logo=adobeacrobatreader&logoColor=ffffff" alt="Paper PDF"></a>
   <a href="https://huggingface.co/collections/zaleni/tbot-sa1"><img src="https://img.shields.io/badge/Models-HuggingFace-FFD21E?logo=huggingface&logoColor=000000" alt="Hugging Face models"></a>
@@ -47,17 +47,17 @@
 - [ ] **Release TBot-SA1-Wan model weights and results.**
 
 ## Table of Contents
-
-- [News](#news)
-- [TODO List](#todo-list)
 - [Overview](#overview)
 - [Repository Layout](#repository-layout)
 - [Installation](#installation)
 - [Model Zoo](#model-zoo)
-- [RoboTwin Evaluation](#robotwin-evaluation)
+- [Inference](#inference)
 - [Training](#training)
-- [Inference Examples](#inference-examples)
+  - [RoboTwin Finetuning](#robotwin-finetuning)
+  - [Finetuning example](#finetuning-example)
+  - [Multi-Dataset Pretraining](#multi-dataset-pretraining)
 - [Acknowledgments](#acknowledgments)
+- [Citation](#citation)
 
 ## Overview
 
