@@ -1,10 +1,14 @@
 # RoboTwin Evaluation
 
-This directory evaluates TBot-SA1 on RoboTwin. The maintained shell wrapper sets
-checkpoints, stats, task ranges, and GPU scheduling knobs before launching the
-shared evaluator.
+This document provides instructions for reproducing our experimental results
+with [RoboTwin2.0](https://github.com/RoboTwin-Platform/RoboTwin).
 
-## Entry Points
+The main entry point is `eval_randomized_50.sh`, which runs TBot-SA1 on the
+RoboTwin randomized 50-task benchmark. By default it loads the released
+`zaleni/TBot-SA1-RoboTwin` checkpoint; you can override the checkpoint, task
+range, episode count, and GPU allocation with environment variables.
+
+## Introduction
 
 - `eval_randomized_50.sh`: maintained TBot-SA1 randomized 50-task evaluation
   wrapper. It defaults to `PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin`.
@@ -12,13 +16,6 @@ shared evaluator.
 - `image_tools.py`: image processing helpers used by the evaluator.
 
 ## Requirements
-
-- Linux with an NVIDIA GPU
-- Python 3.10
-- CUDA 12.8
-- PyTorch 2.7.1
-- `third_party/RoboTwin` checked out and its simulation assets downloaded
-- Vulkan runtime installed
 
 You can follow the official RoboTwin installation guide for the complete
 simulator setup:
@@ -39,7 +36,7 @@ same path:
 git clone https://github.com/RoboTwin-Platform/RoboTwin.git third_party/RoboTwin
 ```
 
-### Install RoboTwin Extras in the TBot-SA1 Env
+### Environment Set-up
 
 After the main TBot-SA1 environment is ready, keep using the same environment
 and add the RoboTwin simulator dependencies. This follows the RoboTwin 2.0 setup
@@ -89,6 +86,7 @@ QWEN3_VL_PRETRAINED_PATH=Qwen/Qwen3-VL-2B-Instruct \
 QWEN3_VL_PROCESSOR_PATH=Qwen/Qwen3-VL-2B-Instruct \
 COSMOS_TOKENIZER_PATH_OR_NAME=nvidia/Cosmos-Tokenizer-CI8x8 \
 DISABLE_DA3_TEACHER_FOR_EVAL=true \
+ACTION_MODE=delta \
 GPU_IDS=0,1 \
 MAX_JOBS_PER_GPU=2 \
 bash evaluation/RoboTwin/eval_randomized_50.sh
@@ -101,27 +99,24 @@ bash evaluation/RoboTwin/eval_randomized_50.sh
 - `GPU_IDS`: comma-separated GPUs used by the scheduler, for example `0,1`.
 - `MAX_JOBS_PER_GPU`: maximum parallel RoboTwin tasks per GPU. Lower this if
   memory is tight.
-- `TASK_CONFIG`: RoboTwin task config name. The default randomized benchmark is
+- `TASK_CONFIG`: RoboTwin task config setting `demo_clean` or `demo_randomized`. The default is set to
   `demo_randomized`.
-- `START_TASK_IDX` and `TASK_COUNT`: evaluate a slice of the 50 randomized
+- `START_TASK_IDX` and `TASK_COUNT`: evaluate a slice of the 50
   tasks, useful for debugging or resuming partial runs.
 - `TEST_NUM`: number of episodes per task. Defaults to `100`.
 - `ACTION_MODE`: action representation expected by the checkpoint. The released
   RoboTwin checkpoint uses `delta`.
-- `STATS_KEY`: normalization stats key loaded from the checkpoint. Usually
-  `aloha`.
 - `INFER_HORIZON` and `ACTION_HORIZON_SIZE`: policy rollout horizon settings.
   Keep the defaults unless you are matching a custom checkpoint.
 - `DISABLE_DA3_TEACHER_FOR_EVAL`: keep this `true` for standard action
-  evaluation without the 3D teacher.
+  evaluation without loading the 3D teacher.
 - `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH`, and
   `COSMOS_TOKENIZER_PATH_OR_NAME`: override these only when using local copies
   of the backbone, processor, or tokenizer.
 
 ## Outputs
 
-Each run writes per-task logs under `evaluation/RoboTwin/output*/tasks/task_##/`,
-plus:
+Each run writes per-task logs under `evaluation/RoboTwin/output*/tasks/task_##/` with:
 
 - `summary.json`
 - `summary.txt`
@@ -129,5 +124,5 @@ plus:
 
 ## Notes
 
-- `ACTION_MODE` should match the checkpoint/training setup.
+- `ACTION_MODE` should match the checkpoint/training setup, `abs` or `delta`.
 - `STATS_KEY` is usually `aloha`.
