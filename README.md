@@ -128,13 +128,6 @@ For real-robot serving and websocket evaluation:
 pip install tyro matplotlib mediapy websockets msgpack
 ```
 
-For RoboTwin, also install the evaluator requirements and follow the upstream
-RoboTwin asset setup:
-
-```bash
-pip install -r evaluation/RoboTwin/requirements.txt
-```
-
 TBot-SA1 uses a patched Qwen3-VL implementation for cached inference. After
 installing `transformers==4.57.1`, copy the replacement model files into the
 installed package:
@@ -154,49 +147,81 @@ cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_D
 
 All released models are available in the
 [TBot-SA1 Hugging Face collection](https://huggingface.co/collections/zaleni/tbot-sa1).
-For RoboTwin evaluation, load the released RoboTwin model:
 
-```bash
-PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin
-```
-
-For standard RoboTwin action evaluation with the released model, use
+For action evaluation with the released model, use
 `DISABLE_DA3_TEACHER_FOR_EVAL=true`.
 
-## RoboTwin Evaluation
+## Inference
 
-The maintained TBot-SA1 RoboTwin entrypoint is
-`evaluation/RoboTwin/eval_randomized_50.sh`. See
-[evaluation/RoboTwin/README.md](evaluation/RoboTwin/README.md) for all runtime
-options.
+- RoboTwin: [evaluation/RoboTwin/README.md](evaluation/RoboTwin/README.md)
+- Real Piper example:
+  [evaluation/Real_Piper_Example/README.md](evaluation/Real_Piper_Example/README.md)
+- Real Lift2 example:
+  [evaluation/Real_Lift2_Example/README.md](evaluation/Real_Lift2_Example/README.md)
 
-```bash
-PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin \
-QWEN3_VL_PRETRAINED_PATH=Qwen/Qwen3-VL-2B-Instruct \
-QWEN3_VL_PROCESSOR_PATH=Qwen/Qwen3-VL-2B-Instruct \
-COSMOS_TOKENIZER_PATH_OR_NAME=nvidia/Cosmos-Tokenizer-CI8x8 \
-DISABLE_DA3_TEACHER_FOR_EVAL=true \
-GPU_IDS=0,1 \
-MAX_JOBS_PER_GPU=2 \
-bash evaluation/RoboTwin/eval_randomized_50.sh
-```
-
-Useful knobs include `TASK_CONFIG`, `START_TASK_IDX`, `TASK_COUNT`,
-`TEST_NUM`, `ACTION_MODE`, `STATS_KEY`, `INFER_HORIZON`, and
-`SKIP_GET_OBS_WITHIN_REPLAN`.
+The real-robot examples split inference into a GPU policy server and a
+robot-side client. They are intended as reference integrations that you can
+adapt to your own hardware.
 
 ## Training
 
 All TBot-SA1 training scripts live directly under `launch/`.
+For finetuning, initialize from the released base pretrained model with
+`POLICY_INIT_PATH=zaleni/TBot-SA1-Base`.
 
-### Generic Finetuning
 
-Use this script for a single LeRobot-v3 dataset. It defaults to delta actions
-and disables image augmentation unless you override the environment variables.
+### RoboTwin Finetuning
+
+`launch/tbot_sa1_finetune_robotwin.sh` discovers all LeRobot-v3 datasets under
+`ROBOTWIN_ROOT` and trains over them as a multi-dataset run.
+
+Download the RoboTwin LeRobot-v3.0 dataset from Hugging Face and point
+`ROBOTWIN_ROOT` to the local download directory:
 
 ```bash
-POLICY_INIT_PATH=/path/to/TBot-SA1/bootstrap \
-DATASET_REPO_ID=/path/to/lerobot_v3_dataset \
+hf download hxma/RoboTwin-LeRobot-v3.0 \
+  --repo-type dataset \
+  --local-dir /path/to/robotwin_lerobot_v3.0
+```
+
+Compute external normalization statistics before training. The output path below
+matches the `DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats` layout used by the
+training script:
+
+```bash
+ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3.0
+
+find -L "${ROBOTWIN_ROOT}" -path "*/meta/info.json" -print \
+  | while read -r info; do dirname "$(dirname "$info")"; done \
+  | sort -u > robotwin_repo_ids.txt
+
+python tools/compute_norm_stats_multi.py \
+  --repo_id_file robotwin_repo_ids.txt \
+  --action_mode delta \
+  --chunk_size 50 \
+  --num_workers 8 \
+  --output_path /path/to/norm_stats/aloha/delta/stats.json
+```
+
+If you want to train with `ACTION_TYPE=abs`, compute stats with `--action_mode abs` and write to
+`/path/to/norm_stats/aloha/abs/stats.json` instead.
+
+```bash
+POLICY_INIT_PATH=zaleni/TBot-SA1-Base \
+ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3.0 \
+ACTION_TYPE=delta \
+USE_EXTERNAL_STATS=true \
+DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats \
+bash launch/tbot_sa1_finetune_robotwin.sh
+```
+
+### Finetuning example
+
+Use this script for a single LeRobot-v3 dataset. It defaults to delta actions.
+
+```bash
+POLICY_INIT_PATH=zaleni/TBot-SA1-Base \
+DATASET_REPO_ID=/path/to/lerobot_v3.0_dataset \
 ACTION_TYPE=delta \
 USE_EXTERNAL_STATS=true \
 bash launch/tbot_sa1_finetune.sh
@@ -212,29 +237,6 @@ python tools/compute_norm_stats_single.py \
   --output_dir norm_stats
 ```
 
-### RoboTwin Finetuning
-
-`launch/tbot_sa1_finetune_robotwin.sh` discovers all LeRobot-v3 datasets under
-`ROBOTWIN_ROOT` and trains over them as a multi-dataset run.
-
-```bash
-POLICY_INIT_PATH=/path/to/TBot-SA1/bootstrap \
-ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3 \
-ACTION_TYPE=abs \
-USE_EXTERNAL_STATS=true \
-DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats \
-bash launch/tbot_sa1_finetune_robotwin.sh
-```
-
-### LIBERO Finetuning
-
-```bash
-POLICY_INIT_PATH=/path/to/TBot-SA1/bootstrap \
-DATASET_REPO_ID=/path/to/libero_lerobot_v3_dataset \
-ACTION_TYPE=abs \
-bash launch/tbot_sa1_finetune_libero.sh
-```
-
 ### Multi-Dataset Pretraining
 
 `launch/tbot_sa1_pretrain.sh` can discover datasets from multiple roots:
@@ -242,7 +244,6 @@ bash launch/tbot_sa1_finetune_libero.sh
 `EGODEX_LEROBOT_ROOT`.
 
 ```bash
-POLICY_INIT_PATH=/path/to/TBot-SA1/bootstrap \
 ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3 \
 EGODEX_LEROBOT_ROOT=/path/to/egodex_lerobot_v3 \
 DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats \
@@ -250,7 +251,7 @@ WEIGHT_RULES_PATH=configs/tbot_sa1_pretrain_data_config.yaml \
 bash launch/tbot_sa1_pretrain.sh
 ```
 
-Comparison-method RoboTwin finetuning scripts are available in
+Some other policies are also supported by this repository, training scripts are available in
 `launch/supported_methods/`:
 
 - `qwenaction_finetune.sh`
@@ -259,18 +260,6 @@ Comparison-method RoboTwin finetuning scripts are available in
 - `internvla_a1_3b_finetune.sh`
 - `fastwam_finetune.sh`
 
-## Inference Examples
-
-- RoboTwin: [evaluation/RoboTwin/README.md](evaluation/RoboTwin/README.md)
-- LIBERO: [evaluation/Libero/README.md](evaluation/Libero/README.md)
-- Real Piper example:
-  [evaluation/Real_Piper_Example/README.md](evaluation/Real_Piper_Example/README.md)
-- Real Lift2 example:
-  [evaluation/Real_Lift2_Example/README.md](evaluation/Real_Lift2_Example/README.md)
-
-The real-robot examples split inference into a GPU policy server and a
-robot-side client. They are intended as reference integrations that you can
-adapt to your own hardware.
 
 ## Acknowledgments
 
@@ -280,8 +269,7 @@ TBot-SA1 builds on the excellent work of the
 [Qwen3-VL](https://github.com/QwenLM/Qwen3-VL),
 [Depth-Anything-3](https://github.com/ByteDance-Seed/Depth-Anything-3),
 [InternVLA-A1](https://github.com/InternRobotics/InternVLA-A1), and
-[FastWAM](https://github.com/yuantianyuan01/FastWAM) communities. The
-comparison method scripts are kept in the release to make reproduction and
+[FastWAM](https://github.com/yuantianyuan01/FastWAM) communities. Some adapted policy scripts are kept in this repository to make reproduction and
 ablation runs easier from the same codebase.
 
 ## Citation
