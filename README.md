@@ -1,8 +1,8 @@
+<h1 align="center">TBot-SA1: 2D-3D Latent World Action Modeling for Generalizable Robot Control</h1>
+
 <p align="center">
   <img src="assets/logo.png" alt="TBot-SA1" width="360">
 </p>
-
-<h3 align="center">TBot-SA<sub>1</sub>: 2D-3D Latent World Action Modeling for Generalizable Robot Control</h3>
 
 <p align="center">
   a <strong>World-Spatial-Action</strong> embodied
@@ -27,6 +27,8 @@
     <img src="https://img.shields.io/badge/%F0%9F%8F%86%20Leaderboard-RoboChallenge-C99A00" alt="RoboChallenge leaderboard">
   </a>
 </p>
+
+<br>
 
 <p align="center">
   <img src="assets/motivation_01.png" alt="TBot-SA1 overview" width="95%">
@@ -156,12 +158,9 @@ cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_D
 
 | Name | Type | Usage |
 | --- | --- | --- |
-| [TBot-SA1-Base](https://huggingface.co/zaleni/TBot-SA1-Base) | Base policy model | General initialization and downstream finetuning |
-| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | RoboTwin policy model | RoboTwin evaluation and finetuning initialization |
-| [TBot-SA1-LIBERO](https://huggingface.co/zaleni/TBot-SA1-LIBERO) | LIBERO policy model | LIBERO evaluation and finetuning initialization |
-| `Qwen/Qwen3-VL-2B-Instruct` | VLM backbone and processor | `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH` |
-| `nvidia/Cosmos-Tokenizer-CI8x8` | Cosmos tokenizer | `COSMOS_TOKENIZER_PATH_OR_NAME` |
-| `depth-anything/DA3-LARGE-1.1` | 3D teacher | Training or evaluation with the 3D teacher enabled |
+| [TBot-SA1-Base](https://huggingface.co/zaleni/TBot-SA1-Base) | Pretrained policy model | TBot-SA1 pretrained model for downstream finetuning |
+| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | RoboTwin finetuned policy model | Fine-tuned from TBot-SA1-Base for strong RoboTwin evaluation and inference performance |
+| [TBot-SA1-LIBERO](https://huggingface.co/zaleni/TBot-SA1-LIBERO) | LIBERO finetuned policy model | Fine-tuned from TBot-SA1-Base for strong LIBERO evaluation and inference performance |
 
 All released models are available in the
 [TBot-SA1 Hugging Face collection](https://huggingface.co/collections/zaleni/tbot-sa1).
@@ -285,10 +284,15 @@ adapt to your own hardware.
 
 ## Acknowledgments
 
-TBot-SA1 builds on the excellent work of the LeRobot, RoboTwin, Qwen3-VL,
-NVIDIA Cosmos, Depth-Anything-3, and InternVLA communities. The comparison
-method scripts are kept in the release to make reproduction and ablation runs
-easier from the same codebase.
+TBot-SA1 builds on the excellent work of the
+[LeRobot](https://github.com/huggingface/lerobot),
+[RoboTwin](https://github.com/RoboTwin-Platform/RoboTwin),
+[Qwen3-VL](https://github.com/QwenLM/Qwen3-VL),
+[Depth-Anything-3](https://github.com/ByteDance-Seed/Depth-Anything-3),
+[InternVLA-A1](https://github.com/InternRobotics/InternVLA-A1), and
+[FastWAM](https://github.com/yuantianyuan01/FastWAM) communities. The
+comparison method scripts are kept in the release to make reproduction and
+ablation runs easier from the same codebase.
 
 <p align="center">
   <img src="assets/tongji-logo.png" alt="Tongji University" height="56">
@@ -297,3 +301,5 @@ easier from the same codebase.
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="assets/sig-logo.png" alt="Spatial Intelligence Group" height="56">
 </p>
+
+## Citation
