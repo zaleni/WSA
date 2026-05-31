@@ -1,7 +1,17 @@
+<p align="center">
+  <img src="assets/logo.png" alt="TBot-SA1 logo" width="520">
+</p>
+
 <h1 align="center">TBot-SA1</h1>
 
 <p align="center">
-  Training, evaluation, and inference code for a world-spatial-action robot policy.
+  <strong>2D-3D Latent World Action Modeling for Generalizable Robot Control</strong>
+</p>
+
+<p align="center">
+  A World-Spatial-Action embodied foundation model that unifies instruction-aligned
+  2D visual planning, action-conditioned 3D world modeling, and 3D-aware action
+  generation in a shared latent space.
 </p>
 
 <p align="center">
@@ -52,20 +62,25 @@
 
 ## Overview
 
-This release focuses on TBot-SA1. It provides the policy implementation,
-LeRobot-v3 training pipeline, RoboTwin/LIBERO evaluation helpers, real-robot
-example runtimes, and maintained comparison-method launch scripts.
-
-Highlights:
-
-- Policy code, training entrypoints, and inference runtimes are all included.
-- RoboTwin and LIBERO workflows are provided for reproducible evaluation.
-- Piper and Lift2 examples show how to adapt the policy server to real robots.
-- Comparison-method RoboTwin finetuning scripts are kept for fair reproduction.
-
 <p align="center">
   <img src="assets/framework_01.png" alt="TBot-SA1 framework" width="95%">
 </p>
+
+TBot-SA1 is a World-Spatial-Action (WSA) embodied foundation model for
+generalizable robot control. It learns a shared 2D-3D latent space that connects
+instruction-aligned visual planning, action-conditioned 3D world prediction,
+and 3D-aware action generation.
+
+Method Highlights:
+
+- WSA modeling unifies semantic understanding, 3D world modeling, and physical
+  execution.
+- Bidirectional 3D causality learns both action-conditioned scene dynamics and
+  3D inverse dynamics.
+- Mixture-of-Transformers coordinates 2D planning, 3D prediction, and 3D action
+  generation with shared dependency rules.
+- Data-efficient pretraining on 6,000 demonstration hours yields strong
+  simulation and real-world manipulation performance.
 
 ## Repository Layout
 
@@ -263,3 +278,11 @@ TBot-SA1 builds on the excellent work of the LeRobot, RoboTwin, Qwen3-VL,
 NVIDIA Cosmos, Depth-Anything-3, and InternVLA communities. The comparison
 method scripts are kept in the release to make reproduction and ablation runs
 easier from the same codebase.
+
+<p align="center">
+  <img src="assets/tongji-logo.png" alt="Tongji University" height="56">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/sii-logo.png" alt="Shanghai Innovation Institute" height="56">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/sig-logo.png" alt="Spatial Intelligence Group" height="56">
+</p>
