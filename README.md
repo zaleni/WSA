@@ -149,8 +149,8 @@ cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_D
 | Name | Type | Usage |
 | --- | --- | --- |
 | [TBot-SA1-Base](https://huggingface.co/zaleni/TBot-SA1-Base) | Pretrained policy model | TBot-SA1 pretrained model for downstream finetuning |
-| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | RoboTwin finetuned policy model | Fine-tuned from TBot-SA1-Base for strong RoboTwin evaluation and inference performance |
-| [TBot-SA1-LIBERO](https://huggingface.co/zaleni/TBot-SA1-LIBERO) | LIBERO finetuned policy model | Fine-tuned from TBot-SA1-Base for strong LIBERO evaluation and inference performance |
+| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | RoboTwin finetuned policy model | Fine-tuned from TBot-SA1-Base for RoboTwin evaluation and inference |
+| [TBot-SA1-LIBERO](https://huggingface.co/zaleni/TBot-SA1-LIBERO) | LIBERO finetuned policy model | Fine-tuned from TBot-SA1-Base for LIBERO evaluation and inference |
 
 All released models are available in the
 [TBot-SA1 Hugging Face collection](https://huggingface.co/collections/zaleni/tbot-sa1).
