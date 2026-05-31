@@ -1,12 +1,8 @@
 <p align="center">
-  <img src="assets/logo.png" alt="TBot-SA1 logo" width="520">
+  <img src="assets/logo.png" alt="TBot-SA1" width="380">
 </p>
 
-<h1 align="center">TBot-SA1</h1>
-
-<p align="center">
-  <strong>2D-3D Latent World Action Modeling for Generalizable Robot Control</strong>
-</p>
+<h3 align="center">2D-3D Latent World Action Modeling for Generalizable Robot Control</h3>
 
 <p align="center">
   A World-Spatial-Action embodied foundation model that unifies instruction-aligned
@@ -40,12 +36,13 @@
 
 ## TODO List
 
-- [x] Release TBot-SA1 policy code and launch scripts.
-- [x] Provide RoboTwin, LIBERO, and real-robot example inference workflows.
-- [x] Keep supported comparison-method RoboTwin finetuning scripts.
-- [ ] Add paper and citation information when available.
-- [ ] Add more dataset preparation examples and troubleshooting notes.
-- [ ] Release additional checkpoints and results as they are finalized.
+- [x] Provide RoboTwin, LIBERO, and real world robot example inference workflows.
+- [x] Release TBot-SA1 policy code and finetuning scripts.
+- [x] Release TBot-SA1 pretraining scripts.
+- [ ] Release paper on arxiv and citation.
+- [ ] Release results and checkpoints on more benchmarks.
+- [ ] **[Coming soon] Release TBot-SA1-Wan model code, a 6B type of WSA model using Wan2.2 video model as backbone.**
+- [ ] **Release TBot-SA1-Wan model weights and results.**
 
 ## Table of Contents
 
