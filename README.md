@@ -47,7 +47,7 @@ for Generalizable Robot Control</h1>
 - [ ] **Release TBot-SA1-6B model weights and results.**
 
 ## Table of Contents
-- [Overview](#overview)
+- [Framework](#framework)
 - [Repository Layout](#repository-layout)
 - [Installation](#installation)
 - [Model Zoo](#model-zoo)
@@ -59,7 +59,7 @@ for Generalizable Robot Control</h1>
 - [Acknowledgments](#acknowledgments)
 - [Citation](#citation)
 
-## Overview
+## Framework
 
 <p align="center">
   <img src="assets/framework_01.png" alt="TBot-SA1 framework" width="95%">
@@ -169,14 +169,14 @@ For action evaluation with the released model, use
 
 The real-robot examples split inference into a GPU policy server and a
 robot-side client. They are intended as reference integrations that you can
-adapt to your own hardware.
+adapt to your own hardware. Our evaluation results were conducted on `NVIDIA GeForce RTX 4090 GPUs`.
 
 ## Training
 
 All TBot-SA1 training scripts live directly under `launch/`.
 For finetuning, initialize from the released base pretrained model with
 `POLICY_INIT_PATH=zaleni/TBot-SA1-Base`.
-
+We trained models on `8 × NVIDIA H200 GPUs`.
 
 ### RoboTwin Finetuning
 
