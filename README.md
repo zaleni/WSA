@@ -1,5 +1,4 @@
-<h1 align="center">TBot-SA1: 3D-centric World-Spatial-Action Modeling 
-for Generalizable Robot Control</h1>
+<h1 align="center">TBot-SA1: 3D-centric World-Spatial-Action Modeling<br>for Generalizable Robot Control</h1>
 
 <p align="center">
   <img src="assets/logo.png" alt="TBot-SA1" width="420">
