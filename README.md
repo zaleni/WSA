@@ -22,7 +22,7 @@ for Generalizable Robot Control</h1>
 <br>
 
 <p align="center">
-  <img src="assets/motivation_01.png" alt="TBot-SA1 overview" width="95%">
+  <img src="assets/overview.png" alt="TBot-SA1 overview" width="95%">
 </p>
 
 <a id="news"></a>
