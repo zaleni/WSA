@@ -29,7 +29,7 @@ for Generalizable Robot Control</h1>
 
 ## 🗞️ News
 
-- [2026-05-18]: 🏆 Our fully open-source WSA model **TBot-SA1 ranked 4th worldwide on the [RoboChallenge CVPR leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
+- [2026-05-18]: 🏆 Our fully open-source WSA model **TBot-SA1 ranked 4th worldwide on the [RoboChallenge CVPR 2026 leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
 - [2026-05-31]: 🎉 Release of TBot-SA1 training, evaluation, and inference code.
 - [2026-05-31]: 🤗 Released the WSA paper and the TBot-SA1 Hugging Face
   model collection with Base, RoboTwin, and LIBERO models.
@@ -65,21 +65,29 @@ for Generalizable Robot Control</h1>
   <img src="assets/framework_01.png" alt="TBot-SA1 framework" width="95%">
 </p>
 
-TBot-SA1 is a World-Spatial-Action (WSA) embodied foundation model for
+TBot-SA1 is a **World-Spatial-Action (WSA)** embodied foundation model for
 generalizable robot control. It learns a shared 2D-3D latent space that connects
-instruction-aligned visual planning, action-conditioned 3D world prediction,
-and 3D-aware action generation.
+instruction-aligned **visual planning**, action-conditioned **3D world prediction**,
+and 3D-aware **action generation**.
 
-**Highlights:**
+### 🌟 Highlights:
 
-- WSA modeling unifies semantic understanding, 3D world modeling, and physical
+- **Unified WSA Modeling:** WSA modeling unifies semantic understanding, 3D world modeling, and physical
   execution.
-- Bidirectional 3D causality learns both action-conditioned scene dynamics and
+- **Bidirectional 3D Causality:** Bidirectional 3D causality learns both action-conditioned scene dynamics and
   3D inverse dynamics.
-- Mixture-of-Transformers coordinates 2D planning, 3D prediction, and 3D action
+- **Mixture-of-Transformers:** Mixture-of-Transformers coordinates 2D planning, 3D prediction, and 3D action
   generation with shared dependency rules.
-- Data-efficient pretraining on 6,000 demonstration hours yields strong
+- **Data-Efficient Pretraining:** Data-efficient pretraining on 6,000 demonstration hours yields strong
   simulation and real-world manipulation performance.
+- **Superior Performance:** State-of-the-art results across simulation
+  and real-world robot manipulation tasks, achieved by our open-source model.
+
+---
+🤖 Result on RoboTwin 2.0 randomized setting, averaged over 50 simulated aloha manipulation tasks:
+| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | TBot-SA1 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | **92.70%** |
 
 ## Repository Layout
 
@@ -217,7 +225,7 @@ bash launch/tbot_sa1_finetune_robotwin.sh
 
 ### Finetuning example
 
-Use this script for a single LeRobot-v3 dataset. It defaults to delta actions.
+Use this script for a single LeRobot-v3.0 dataset. It defaults to delta actions.
 
 ```bash
 POLICY_INIT_PATH=zaleni/TBot-SA1-Base \
@@ -231,7 +239,7 @@ For delta-action training, compute normalization statistics first:
 
 ```bash
 python tools/compute_norm_stats_single.py \
-  --repo_id /path/to/lerobot_v3_dataset \
+  --repo_id /path/to/lerobot_v3.0_dataset \
   --action_mode delta \
   --chunk_size 50 \
   --output_dir norm_stats
