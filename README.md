@@ -1,4 +1,5 @@
-<h1 align="center">TBot-SA1: 2D-3D Latent World Action Modeling for Generalizable Robot Control</h1>
+<h1 align="center">TBot-SA1: a 3D-centric World-Spatial-Action Model
+for Generalizable Robot Control</h1>
 
 <p align="center">
   <img src="assets/logo.png" alt="TBot-SA1" width="360">
@@ -13,7 +14,7 @@
 <p align="center">
   <a href="https://zaleni.github.io/TBot-SA1/"><img src="https://img.shields.io/badge/Project%20Page-Website-2EA44F?logo=googlechrome&logoColor=ffffff" alt="Project page"></a>
   <a href="https://github.com/zaleni/TBot-SA1"><img src="https://img.shields.io/badge/Repository-GitHub-181717?logo=github" alt="GitHub repository"></a>
-  <a href="https://github.com/zaleni/TBot-SA1/blob/main/assets/WSA.pdf"><img src="https://img.shields.io/badge/Paper-PDF-B31B1B?logo=adobeacrobatreader&logoColor=ffffff" alt="Paper PDF"></a>
+  <a href="https://zaleni.github.io/TBot-SA1/assets/paper/manuscript.pdf"><img src="https://img.shields.io/badge/Paper-PDF-B31B1B?logo=adobeacrobatreader&logoColor=ffffff" alt="Paper PDF"></a>
   <a href="https://huggingface.co/collections/zaleni/tbot-sa1"><img src="https://img.shields.io/badge/Models-HuggingFace-FFD21E?logo=huggingface&logoColor=000000" alt="Hugging Face models"></a>
   <a href="https://robochallenge.ai/competition/cvpr"><img src="https://img.shields.io/badge/%F0%9F%8F%86%20Leaderboard-RoboChallenge-C99A00" alt="RoboChallenge leaderboard"></a>
 </p>
@@ -28,8 +29,7 @@
 
 ## 🗞️ News
 
-- [2026-05-18]: 🏆 Our fully open-source WSA model **TBot-SA1 ranked 4th worldwide and 1st among university
-  teams on the [RoboChallenge CVPR leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
+- [2026-05-18]: 🏆 Our fully open-source WSA model **TBot-SA1 ranked 4th worldwide on the [RoboChallenge CVPR leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
 - [2026-05-31]: 🎉 Release of TBot-SA1 training, evaluation, and inference code.
 - [2026-05-31]: 🤗 Released the WSA paper and the TBot-SA1 Hugging Face
   model collection with Base, RoboTwin, and LIBERO models.
@@ -43,8 +43,8 @@
 - [x] Release TBot-SA1 pretraining scripts.
 - [ ] Release paper on arxiv and citation.
 - [ ] Release results and models on more benchmarks.
-- [ ] **[Coming soon] Release TBot-SA1-Wan model code, a 6B type of WSA model using Wan2.2 video model as backbone.**
-- [ ] **Release TBot-SA1-Wan model weights and results.**
+- [ ] **[Coming soon] Release TBot-SA1-6B model code, a 6B type of WSA model using Wan2.2 video model as backbone.**
+- [ ] **Release TBot-SA1-6B model weights and results.**
 
 ## Table of Contents
 - [Overview](#overview)
@@ -70,7 +70,7 @@ generalizable robot control. It learns a shared 2D-3D latent space that connects
 instruction-aligned visual planning, action-conditioned 3D world prediction,
 and 3D-aware action generation.
 
-Method Highlights:
+**Highlights:**
 
 - WSA modeling unifies semantic understanding, 3D world modeling, and physical
   execution.
@@ -141,9 +141,9 @@ cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_D
 
 | Name | Type | Usage |
 | --- | --- | --- |
-| [TBot-SA1-Base](https://huggingface.co/zaleni/TBot-SA1-Base) | Pretrained policy model | TBot-SA1 pretrained model for downstream finetuning |
-| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | RoboTwin finetuned policy model | Fine-tuned from TBot-SA1-Base for RoboTwin evaluation and inference |
-| [TBot-SA1-LIBERO](https://huggingface.co/zaleni/TBot-SA1-LIBERO) | LIBERO finetuned policy model | Fine-tuned from TBot-SA1-Base for LIBERO evaluation and inference |
+| [TBot-SA1-Base](https://huggingface.co/zaleni/TBot-SA1-Base) | Pretrained policy | TBot-SA1 pretrained model for downstream finetuning |
+| [TBot-SA1-RoboTwin](https://huggingface.co/zaleni/TBot-SA1-RoboTwin) | RoboTwin finetuned model | Fine-tuned from TBot-SA1-Base for RoboTwin evaluation and inference |
+| [TBot-SA1-LIBERO](https://huggingface.co/zaleni/TBot-SA1-LIBERO) | LIBERO finetuned model | Fine-tuned from TBot-SA1-Base for LIBERO evaluation and inference |
 
 All released models are available in the
 [TBot-SA1 Hugging Face collection](https://huggingface.co/collections/zaleni/tbot-sa1).
@@ -269,7 +269,7 @@ TBot-SA1 builds on the excellent work of the
 [Qwen3-VL](https://github.com/QwenLM/Qwen3-VL),
 [Depth-Anything-3](https://github.com/ByteDance-Seed/Depth-Anything-3),
 [InternVLA-A1](https://github.com/InternRobotics/InternVLA-A1), and
-[FastWAM](https://github.com/yuantianyuan01/FastWAM) communities. Some adapted policy scripts are kept in this repository to make reproduction and
+[FastWAM](https://github.com/yuantianyuan01/FastWAM). Some adapted policy scripts are kept in this repository to make reproduction and
 ablation runs easier from the same codebase.
 
 ## Citation
