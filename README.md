@@ -85,9 +85,9 @@ and 3D-aware **action generation**.
 
 ---
 🤖 Result on RoboTwin 2.0 randomized setting, averaged over 50 simulated aloha manipulation tasks:
-| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | TBot-SA1 |
+| Metric | π0 | π0.5 | ABot&#8209;M0 | Motus | InternVLA&#8209;A1 | LingBot&#8209;VA | Fast&#8209;WAM | TBot&#8209;SA1 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | **92.70%** |
+| Avg.&nbsp;Success&nbsp;(Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | **92.70%** |
 
 ## Repository Layout
 
