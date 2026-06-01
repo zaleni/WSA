@@ -2,7 +2,7 @@
 for Generalizable Robot Control</h1>
 
 <p align="center">
-  <img src="assets/logo.png" alt="TBot-SA1" width="360">
+  <img src="assets/logo.png" alt="TBot-SA1" width="390">
 </p>
 
 <p align="center">
