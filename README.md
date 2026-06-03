@@ -108,17 +108,15 @@ tools/                   support scripts used by training workflows
 
 ## Installation
 
-The main development environment is tested with Python 3.10, CUDA 12.8, and
+The main development environment uses Python 3.10, CUDA 12.8, and
 PyTorch 2.7.1.
 
 ```bash
-git clone --recurse-submodules https://github.com/zaleni/TBot-SA1.git
+git clone https://github.com/zaleni/TBot-SA1.git
 cd TBot-SA1
-git submodule update --init --recursive
 
 conda create -y -n tbot_sa1 python=3.10
 conda activate tbot_sa1
-pip install --upgrade pip
 
 conda install -c conda-forge ffmpeg=7.1.1 svt-av1 -y
 
@@ -129,12 +127,6 @@ pip install torchcodec numpy scipy transformers==4.57.1 mediapy loguru pytest om
 pip install -e .
 ```
 
-For real-robot serving and websocket evaluation:
-
-```bash
-pip install tyro matplotlib mediapy websockets msgpack
-```
-
 TBot-SA1 uses a patched Qwen3-VL implementation for cached inference. After
 installing `transformers==4.57.1`, copy the replacement model files into the
 installed package:
@@ -142,6 +134,15 @@ installed package:
 ```bash
 TRANSFORMERS_DIR=${CONDA_PREFIX}/lib/python3.10/site-packages/transformers/
 cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_DIR}
+```
+
+Evaluation in the RoboTwin 2.0 and LIBERO additionally requires their official codebases. These dependencies are included as Git submodules under `third_party/`. To initialize them, run:
+```bash
+git submodule update --init --recursive
+```
+For real-robot serving and websocket evaluation:
+```bash
+pip install tyro matplotlib mediapy websockets msgpack
 ```
 
 ## Model Zoo
