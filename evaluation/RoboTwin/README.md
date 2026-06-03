@@ -72,7 +72,10 @@ cd ../..
 
 For TBot-SA1, install `transformers==4.57.1` and patch the installed Qwen3-VL
 code with `src/lerobot/policies/TBot_SA1/transformers_replace/models`.
-
+```bash
+TRANSFORMERS_DIR=${CONDA_PREFIX}/lib/python3.10/site-packages/transformers/
+cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_DIR}
+```
 
 ## Quick Start
 
