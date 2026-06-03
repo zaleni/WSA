@@ -123,7 +123,7 @@ conda install -c conda-forge ffmpeg=7.1.1 svt-av1 -y
 pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 \
   --index-url https://download.pytorch.org/whl/cu128
 
-pip install torchcodec numpy scipy transformers==4.57.1 mediapy loguru pytest omegaconf h5py
+pip install torchcodec numpy scipy transformers==4.57.1 mediapy loguru pytest omegaconf h5py rich
 pip install -e .
 ```
 
