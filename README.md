@@ -28,7 +28,7 @@
 
 ## 🗞️ News
 
-- [2026-05-18]: 🏆 Our fully open-source WSA model **TBot-SA1 ranked 4th worldwide on the [RoboChallenge CVPR 2026 leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
+- [2026-05-18]: 🏆 Our fully open-source WSA model **TBot-SA1 ranked 4th/100+ teams on the [RoboChallenge CVPR 2026 leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
 - [2026-05-31]: 🎉 Release of TBot-SA1 training, evaluation, and inference code.
 - [2026-05-31]: 🤗 Released the WSA paper and the TBot-SA1 Hugging Face
   model collection with Base, RoboTwin, and LIBERO models.
@@ -285,6 +285,4 @@ ablation runs easier from the same codebase.
   <img src="assets/tongji-logo.png" alt="Tongji University" height="56">
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="assets/sii-logo.png" alt="Shanghai Innovation Institute" height="56">
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="assets/sig-logo.png" alt="Spatial Intelligence Group" height="56">
 </p>
