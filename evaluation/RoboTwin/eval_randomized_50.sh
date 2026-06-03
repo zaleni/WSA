@@ -79,6 +79,7 @@ ACTION_HORIZON_SIZE="${ACTION_HORIZON_SIZE:-50}"
 INSTRUCTION_TYPE="${INSTRUCTION_TYPE:-unseen}"
 LOG_LEVEL="${LOG_LEVEL:-WARNING}"
 DECODE_IMAGE_FLAG="${DECODE_IMAGE_FLAG:-false}"
+ROBOTWIN_EVAL_CONFIG="${ROBOTWIN_EVAL_CONFIG-${PROJ_ROOT}/configs/robotwin_eval_config.yaml}"
 
 export BINARIZE_GRIPPER
 
@@ -162,6 +163,43 @@ mkdir -p "${RUN_OUTPUT_PATH}/tasks"
 
 TASK_END_IDX=$((START_TASK_IDX + TASK_COUNT - 1))
 
+if [[ -n "${ROBOTWIN_EVAL_CONFIG}" && "${ROBOTWIN_EVAL_CONFIG}" != /* ]]; then
+    ROBOTWIN_EVAL_CONFIG="${PROJ_ROOT}/${ROBOTWIN_EVAL_CONFIG}"
+fi
+
+if [[ -n "${ROBOTWIN_EVAL_CONFIG}" && ! -f "${ROBOTWIN_EVAL_CONFIG}" ]]; then
+    echo "ROBOTWIN_EVAL_CONFIG is set but the file was not found: ${ROBOTWIN_EVAL_CONFIG}"
+    echo "Set ROBOTWIN_EVAL_CONFIG= to disable per-task eval settings."
+    exit 1
+fi
+
+declare -a TASK_NAMES_BY_IDX=()
+declare -a TASK_INFER_HORIZONS=()
+declare -a TASK_BINARIZE_GRIPPERS=()
+
+load_per_task_eval_config() {
+    local settings_output=""
+
+    settings_output="$(python "${SCRIPT_DIR}/eval_config.py" \
+        --project-root "${PROJ_ROOT}" \
+        --eval-config "${ROBOTWIN_EVAL_CONFIG}" \
+        --default-infer-horizon "${INFER_HORIZON}" \
+        --default-binarize-gripper "${BINARIZE_GRIPPER}")"
+
+    while IFS=$'\t' read -r task_idx task_name infer_horizon binarize_gripper; do
+        [[ -z "${task_idx}" ]] && continue
+        TASK_NAMES_BY_IDX[task_idx]="${task_name}"
+        TASK_INFER_HORIZONS[task_idx]="${infer_horizon}"
+        TASK_BINARIZE_GRIPPERS[task_idx]="${binarize_gripper}"
+    done <<< "${settings_output}"
+}
+
+load_per_task_eval_config
+if (( ${#TASK_NAMES_BY_IDX[@]} < MAX_TASKS )); then
+    echo "Resolved only ${#TASK_NAMES_BY_IDX[@]} RoboTwin task settings, expected ${MAX_TASKS}."
+    exit 1
+fi
+
 declare -a SLOT_GPU_IDS=()
 for gpu_id in "${GPU_ID_ARRAY[@]}"; do
     for ((slot_repeat = 0; slot_repeat < MAX_JOBS_PER_GPU; slot_repeat++)); do
@@ -192,19 +230,21 @@ done
     fi
     echo "run_output_path: ${RUN_OUTPUT_PATH}"
     echo "task_config: ${TASK_CONFIG}"
+    echo "robotwin_eval_config: ${ROBOTWIN_EVAL_CONFIG:-<disabled>}"
     echo "task_range: ${START_TASK_IDX}-${TASK_END_IDX}"
     echo "task_count: ${TASK_COUNT}"
     echo "gpu_ids: ${GPU_ID_ARRAY[*]}"
     echo "max_jobs_per_gpu: ${MAX_JOBS_PER_GPU}"
     echo "total_parallel_jobs: ${TOTAL_SLOTS}"
     echo "action_mode: ${ACTION_MODE}"
-    echo "binarize_gripper: ${BINARIZE_GRIPPER}"
+    echo "default_binarize_gripper: ${BINARIZE_GRIPPER}"
     echo "test_num: ${TEST_NUM}"
     echo "seed: ${SEED}"
     echo "resize_size: ${RESIZE_SIZE}"
     echo "stats_key: ${STATS_KEY}"
     echo "dtype: ${DTYPE}"
     echo "instruction_type: ${INSTRUCTION_TYPE}"
+    echo "default_infer_horizon: ${INFER_HORIZON}"
     echo "policy_type: ${POLICY_TYPE:-auto_from_checkpoint}"
     echo "qwen3_vl_pretrained_path: ${QWEN3_VL_PRETRAINED_PATH:-<checkpoint_config>}"
     echo "qwen3_vl_processor_path: ${QWEN3_VL_PROCESSOR_PATH:-<checkpoint_config>}"
@@ -224,6 +264,7 @@ done
     printf 'TASK_COUNT=%q ' "${TASK_COUNT}"
     printf 'GPU_IDS=%q ' "$(IFS=,; echo "${GPU_ID_ARRAY[*]}")"
     printf 'MAX_JOBS_PER_GPU=%q ' "${MAX_JOBS_PER_GPU}"
+    printf 'ROBOTWIN_EVAL_CONFIG=%q ' "${ROBOTWIN_EVAL_CONFIG}"
     printf 'ACTION_MODE=%q ' "${ACTION_MODE}"
     printf 'BINARIZE_GRIPPER=%q ' "${BINARIZE_GRIPPER}"
     printf 'TEST_NUM=%q ' "${TEST_NUM}"
@@ -255,6 +296,8 @@ write_task_command_file() {
     local gpu_id="$1"
     local task_idx="$2"
     local task_output_dir="$3"
+    local task_infer_horizon="${TASK_INFER_HORIZONS[task_idx]:-${INFER_HORIZON}}"
+    local task_binarize_gripper="${TASK_BINARIZE_GRIPPERS[task_idx]:-${BINARIZE_GRIPPER}}"
 
     local -a cmd=(
         python ../../evaluation/RoboTwin/inference.py
@@ -269,7 +312,7 @@ write_task_command_file() {
         --args.stats_key "${STATS_KEY}"
         --args.dtype "${DTYPE}"
         --args.image_history_interval "${IMAGE_HISTORY_INTERVAL}"
-        --args.infer_horizon "${INFER_HORIZON}"
+        --args.infer_horizon "${task_infer_horizon}"
         --args.action_horizon_size "${ACTION_HORIZON_SIZE}"
         --args.instruction_type "${INSTRUCTION_TYPE}"
         --args.log_level "${LOG_LEVEL}"
@@ -308,7 +351,7 @@ write_task_command_file() {
     fi
 
     {
-        printf 'BINARIZE_GRIPPER=%q ' "${BINARIZE_GRIPPER}"
+        printf 'BINARIZE_GRIPPER=%q ' "${task_binarize_gripper}"
         printf 'CUDA_VISIBLE_DEVICES=%q ' "${gpu_id}"
         printf '%q ' "${cmd[@]}"
         printf '\n'
@@ -321,6 +364,9 @@ launch_task() {
     local gpu_id="${SLOT_GPU_IDS[slot_idx]}"
     local task_output_dir="${RUN_OUTPUT_PATH}/tasks/task_$(printf '%02d' "${task_idx}")"
     local task_log_path="${task_output_dir}/run.log"
+    local task_name="${TASK_NAMES_BY_IDX[task_idx]:-task_${task_idx}}"
+    local task_infer_horizon="${TASK_INFER_HORIZONS[task_idx]:-${INFER_HORIZON}}"
+    local task_binarize_gripper="${TASK_BINARIZE_GRIPPERS[task_idx]:-${BINARIZE_GRIPPER}}"
 
     mkdir -p "${task_output_dir}"
     write_task_command_file "${gpu_id}" "${task_idx}" "${task_output_dir}"
@@ -342,7 +388,7 @@ launch_task() {
             --args.stats_key "${STATS_KEY}"
             --args.dtype "${DTYPE}"
             --args.image_history_interval "${IMAGE_HISTORY_INTERVAL}"
-            --args.infer_horizon "${INFER_HORIZON}"
+            --args.infer_horizon "${task_infer_horizon}"
             --args.action_horizon_size "${ACTION_HORIZON_SIZE}"
             --args.instruction_type "${INSTRUCTION_TYPE}"
             --args.log_level "${LOG_LEVEL}"
@@ -380,7 +426,7 @@ launch_task() {
             CMD+=(--args.disable_3d_teacher_for_eval)
         fi
 
-        BINARIZE_GRIPPER="${BINARIZE_GRIPPER}" CUDA_VISIBLE_DEVICES="${gpu_id}" "${CMD[@]}" > "${task_log_path}" 2>&1
+        BINARIZE_GRIPPER="${task_binarize_gripper}" CUDA_VISIBLE_DEVICES="${gpu_id}" "${CMD[@]}" > "${task_log_path}" 2>&1
         exit_code=$?
         printf "%s\n" "${exit_code}" > "${task_output_dir}/exit_code.txt"
         exit "${exit_code}"
@@ -391,7 +437,7 @@ launch_task() {
     SLOT_TASKS[slot_idx]="${task_idx}"
     SLOT_OUTPUT_DIRS[slot_idx]="${task_output_dir}"
 
-    echo "[launch] slot=${slot_idx} gpu=${gpu_id} task_idx=${task_idx} pid=${pid}"
+    echo "[launch] slot=${slot_idx} gpu=${gpu_id} task_idx=${task_idx} task=${task_name} pid=${pid}"
 }
 
 reap_finished_slots() {
@@ -738,6 +784,7 @@ refresh_run_summary "progress"
 echo "Launching RoboTwin randomized evaluation:"
 echo "  tasks         : ${START_TASK_IDX}-${TASK_END_IDX}"
 echo "  output        : ${RUN_OUTPUT_PATH}"
+echo "  eval config   : ${ROBOTWIN_EVAL_CONFIG:-disabled}"
 echo "  gpus          : ${GPU_ID_ARRAY[*]}"
 echo "  jobs per gpu  : ${MAX_JOBS_PER_GPU}"
 echo "  parallel jobs : ${TOTAL_SLOTS}"

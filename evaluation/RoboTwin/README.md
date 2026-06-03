@@ -13,13 +13,14 @@ range, episode count, and GPU allocation with environment variables.
 - `eval_randomized_50.sh`: maintained TBot-SA1 randomized 50-task evaluation
   wrapper. It defaults to `PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin`.
 - `inference.py`: shared RoboTwin evaluator called by the shell wrapper.
+- `eval_config.py`: resolves per-task `infer_horizon` and
+  `binarize_gripper` from `configs/robotwin_eval_config.yaml`.
 - `image_tools.py`: image processing helpers used by the evaluator.
 
 ## Requirements
 
-You can follow the official RoboTwin installation guide for the complete
-simulator setup:
-[robotwin-platform.github.io/doc/usage/robotwin-install.html](https://robotwin-platform.github.io/doc/usage/robotwin-install.html).
+You can follow the official [RoboTwin installation](https://robotwin-platform.github.io/doc/usage/robotwin-install.html) guide for the complete
+simulator environment setup.
 
 This repository expects the RoboTwin codebase to live under
 `third_party/RoboTwin`. If you cloned TBot-SA1 without submodules, initialize the
@@ -39,11 +40,7 @@ git clone https://github.com/RoboTwin-Platform/RoboTwin.git third_party/RoboTwin
 ### Environment Set-up
 
 After the main TBot-SA1 environment is ready, keep using the same environment
-and add the RoboTwin simulator dependencies. This follows the RoboTwin 2.0 setup
-used by
-[LingBot-VA](https://github.com/Robbyant/lingbot-va#evaluation-on-robotwin-20),
-but keeps TBot-SA1's PyTorch, Transformers, and Hugging Face Hub versions
-intact.
+and add the RoboTwin2.0 dependencies.
 
 ```bash
 conda activate tbot_sa1
@@ -63,8 +60,7 @@ cp evaluation/RoboTwin/requirements.txt third_party/RoboTwin/script/requirements
 ```
 
 
-Then install RoboTwin's remaining native/simulator dependencies and download the
-simulation assets:
+Then install RoboTwin's remaining native/simulator dependencies and download the assets:
 
 ```bash
 cd third_party/RoboTwin
@@ -101,13 +97,18 @@ bash evaluation/RoboTwin/eval_randomized_50.sh
   memory is tight.
 - `TASK_CONFIG`: RoboTwin task config setting `demo_clean` or `demo_randomized`. The default is set to
   `demo_randomized`.
+- `ROBOTWIN_EVAL_CONFIG`: per-task eval setting file. By default this loads
+  `configs/robotwin_eval_config.yaml` and applies each task's `infer_horizon`
+  and `binarize_gripper`. Task keys must exactly match `inference.py`
+  `TASK_NAMES`. Set `ROBOTWIN_EVAL_CONFIG=` to disable this.
 - `START_TASK_IDX` and `TASK_COUNT`: evaluate a slice of the 50
   tasks, useful for debugging or resuming partial runs.
 - `TEST_NUM`: number of episodes per task. Defaults to `100`.
 - `ACTION_MODE`: action representation expected by the checkpoint. The released
   RoboTwin checkpoint uses `delta`.
 - `INFER_HORIZON` and `ACTION_HORIZON_SIZE`: policy rollout horizon settings.
-  Keep the defaults unless you are matching a custom checkpoint.
+  `INFER_HORIZON` is used as the fallback when the per-task eval config does
+  not provide an override.
 - `DISABLE_DA3_TEACHER_FOR_EVAL`: keep this `true` for standard action
   evaluation without loading the 3D teacher.
 - `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH`, and
