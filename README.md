@@ -1,7 +1,7 @@
 <h1 align="center">TBot-SA1: a 3D-Causal World-Spatial-Action Model<br>for Generalizable Robot Control</h1>
 
 <p align="center">
-  <img src="assets/logo.png" alt="TBot-SA1" width="420">
+  <img src="assets/logo_full_bold.png" alt="TBot-SA1" width="420">
 </p>
 
 <p align="center">
