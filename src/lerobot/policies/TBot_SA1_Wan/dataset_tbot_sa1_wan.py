@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import time
 import traceback
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Optional
@@ -1228,6 +1228,7 @@ class TBotSA1WanRobotVideoDatasetV3(Dataset):
         camera_key: str | None = None,
         processor: BaseProcessor | None = None,
         text_embedding_cache_dir: str | None = None,
+        text_embedding_cache_max_entries: int = 0,
         cache_in_memory: bool = False,
         context_len: int = 128,
         normalization_stats_path: str | None = None,
@@ -1289,7 +1290,10 @@ class TBotSA1WanRobotVideoDatasetV3(Dataset):
         self.video_size = tuple(int(value) for value in video_size)
         self.standardize_video_size_by_cameras = standardize_video_size_by_cameras
         self.text_embedding_cache_dir = text_embedding_cache_dir
-        self._cached_text_contexts: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
+        self.text_embedding_cache_max_entries = int(text_embedding_cache_max_entries)
+        if self.text_embedding_cache_max_entries < 0:
+            raise ValueError("text_embedding_cache_max_entries must be non-negative.")
+        self._cached_text_contexts: OrderedDict[str, tuple[torch.Tensor, torch.Tensor]] = OrderedDict()
         self._memory_cache: list[dict[str, Any]] | None = None
         self.context_len = context_len
         self.skip_padding_as_possible = skip_padding_as_possible
@@ -1549,7 +1553,8 @@ class TBotSA1WanRobotVideoDatasetV3(Dataset):
     def _get_cached_text_context(self, prompt: str):
         if self.text_embedding_cache_dir is None:
             raise ValueError("text_embedding_cache_dir is not set.")
-        if prompt in self._cached_text_contexts:
+        if self.text_embedding_cache_max_entries > 0 and prompt in self._cached_text_contexts:
+            self._cached_text_contexts.move_to_end(prompt)
             return self._cached_text_contexts[prompt]
         os.makedirs(self.text_embedding_cache_dir, exist_ok=True)
         cache_path = build_text_embedding_cache_path(
@@ -1581,7 +1586,11 @@ class TBotSA1WanRobotVideoDatasetV3(Dataset):
             context = context.contiguous()
         if not context_mask.is_contiguous():
             context_mask = context_mask.contiguous()
-        self._cached_text_contexts[prompt] = (context, context_mask)
+        if self.text_embedding_cache_max_entries > 0:
+            self._cached_text_contexts[prompt] = (context, context_mask)
+            self._cached_text_contexts.move_to_end(prompt)
+            while len(self._cached_text_contexts) > self.text_embedding_cache_max_entries:
+                self._cached_text_contexts.popitem(last=False)
         return context, context_mask
 
     @staticmethod
@@ -1748,6 +1757,7 @@ def build_tbot_sa1_wan_dataset(
         camera_key=cfg.camera_key,
         processor=processor,
         text_embedding_cache_dir=cfg.text_embedding_cache_dir,
+        text_embedding_cache_max_entries=cfg.text_embedding_cache_max_entries,
         cache_in_memory=cfg.cache_in_memory,
         context_len=cfg.context_len,
         normalization_stats_path=normalization_stats_path,

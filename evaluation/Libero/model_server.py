@@ -8,6 +8,7 @@ import logging
 import os
 import socket
 import sys
+from collections import OrderedDict
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -92,6 +93,7 @@ class ServeArgs:
     load_text_encoder: bool = False
     text_embed_cache_dir: str | None = None
     text_embed_context_len: int = 128
+    text_embed_cache_max_entries: int = 0
     rtc_enabled: bool = False
     rtc_execution_horizon: int = 10
     rtc_max_guidance_weight: float = 10.0
@@ -161,6 +163,7 @@ def parse_args() -> ServeArgs:
     )
     parser.add_argument("--text_embed_cache_dir", default=None)
     parser.add_argument("--text_embed_context_len", type=int, default=None)
+    parser.add_argument("--text_embed_cache_max_entries", type=int, default=None)
     parser.add_argument(
         "--rtc_enabled",
         "--rtc-enabled",
@@ -200,6 +203,11 @@ def parse_args() -> ServeArgs:
         parsed.text_embed_context_len,
         "TEXT_EMBED_CONTEXT_LEN",
         default=128,
+    )
+    parsed.text_embed_cache_max_entries = _env_int_fallback(
+        parsed.text_embed_cache_max_entries,
+        "TEXT_EMBED_CACHE_MAX_ENTRIES",
+        default=0,
     )
     return parsed
 
@@ -679,6 +687,9 @@ class TBotSA1WanLiberoPolicy:
         self.target_proprio_dim = int(getattr(config, "proprio_dim", 24))
         self.text_embed_cache_dir = self._resolve_text_embed_cache_dir()
         self.text_embed_context_len = int(args.text_embed_context_len or 128)
+        self.text_embed_cache_max_entries = int(args.text_embed_cache_max_entries or 0)
+        if self.text_embed_cache_max_entries < 0:
+            raise ValueError("text_embed_cache_max_entries must be non-negative.")
         if not self.load_text_encoder and not self.text_embed_cache_dir.is_dir():
             raise FileNotFoundError(
                 "TBot_SA1_Wan serving defaults to cached LIBERO text embeddings, but "
@@ -686,7 +697,7 @@ class TBotSA1WanLiberoPolicy:
                 "Precompute the cache there, set TEXT_EMBED_CACHE_DIR to the correct directory, "
                 "or set LOAD_TEXT_ENCODER=true to encode prompts on the fly."
             )
-        self._cached_text_contexts: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
+        self._cached_text_contexts: OrderedDict[str, tuple[torch.Tensor, torch.Tensor]] = OrderedDict()
         self.input_height, self.input_width = resolve_tbot_sa1_wan_video_size(
             2,
             (args.request_image_height, args.request_image_width),
@@ -708,6 +719,7 @@ class TBotSA1WanLiberoPolicy:
             "load_text_encoder": self.load_text_encoder,
             "text_embed_cache_dir": str(self.text_embed_cache_dir),
             "text_embed_context_len": self.text_embed_context_len,
+            "text_embed_cache_max_entries": self.text_embed_cache_max_entries,
         }
 
     @property
@@ -808,9 +820,11 @@ class TBotSA1WanLiberoPolicy:
 
     def _load_cached_text_context(self, prompt: str) -> tuple[torch.Tensor, torch.Tensor]:
         cache_key = prompt
-        cached = self._cached_text_contexts.get(cache_key)
-        if cached is not None:
-            return cached
+        if self.text_embed_cache_max_entries > 0:
+            cached = self._cached_text_contexts.get(cache_key)
+            if cached is not None:
+                self._cached_text_contexts.move_to_end(cache_key)
+                return cached
 
         cache_path = build_text_embedding_cache_path(self.text_embed_cache_dir, prompt, self.text_embed_context_len)
         if not cache_path.is_file():
@@ -846,7 +860,11 @@ class TBotSA1WanLiberoPolicy:
 
         context = context.unsqueeze(0).contiguous()
         mask = mask.unsqueeze(0).contiguous()
-        self._cached_text_contexts[cache_key] = (context, mask)
+        if self.text_embed_cache_max_entries > 0:
+            self._cached_text_contexts[cache_key] = (context, mask)
+            self._cached_text_contexts.move_to_end(cache_key)
+            while len(self._cached_text_contexts) > self.text_embed_cache_max_entries:
+                self._cached_text_contexts.popitem(last=False)
         return context, mask
 
     def _normalize_proprio(self, state: np.ndarray) -> torch.Tensor:

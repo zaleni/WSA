@@ -163,6 +163,7 @@ class TBotSA1WanDatasetConfig(DatasetConfig):
     pretrain_multi_embodiment: bool = False
 
     text_embedding_cache_dir: str | None = None
+    text_embedding_cache_max_entries: int = 0
     cache_in_memory: bool = False
     context_len: int = 128
     normalization_stats_path: str | None = None
@@ -194,6 +195,9 @@ class TBotSA1WanDatasetConfig(DatasetConfig):
             raise ValueError("video_size values must be positive.")
         if self.concat_multi_camera not in {"auto", "horizontal", "vertical", "robotwin"}:
             raise ValueError("concat_multi_camera must be one of: auto, horizontal, vertical, robotwin.")
+        self.text_embedding_cache_max_entries = int(self.text_embedding_cache_max_entries)
+        if self.text_embedding_cache_max_entries < 0:
+            raise ValueError("text_embedding_cache_max_entries must be non-negative.")
 
     @property
     def shape_meta(self) -> dict[str, Any]:

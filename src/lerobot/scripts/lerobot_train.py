@@ -112,6 +112,16 @@ def _env_flag(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {"1", "true", "yes", "y", "on"}
 
 
+def _env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
 def _format_policy_summary(policy: torch.nn.Module) -> str:
     params = list(policy.parameters())
     total_params = sum(param.numel() for param in params)
@@ -762,23 +772,25 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 stats_cache_path=stats_cache_path,
                 is_training_set=False,
             )
+            eval_num_workers = max(_env_int("LEROBOT_TBOT_SA1_WAN_EVAL_NUM_WORKERS", 0), 0)
             eval_dataloader = torch.utils.data.DataLoader(
                 eval_dataset,
-                num_workers=cfg.num_workers,
+                num_workers=eval_num_workers,
                 batch_size=cfg.batch_size,
                 shuffle=False,
                 sampler=None,
-                pin_memory=device.type == "cuda",
+                pin_memory=device.type == "cuda" and eval_num_workers > 0,
                 drop_last=False,
-                prefetch_factor=2 if cfg.num_workers > 0 else None,
+                prefetch_factor=2 if eval_num_workers > 0 else None,
                 worker_init_fn=None,
             )
             logging.info(
                 "Created TBot_SA1_Wan eval dataloader for periodic validation: "
-                "eval_freq=%d, max_batches=%d, batch_size=%d, metric=action_mse/l2",
+                "eval_freq=%d, max_batches=%d, batch_size=%d, num_workers=%d, metric=action_mse/l2",
                 cfg.eval_freq,
                 cfg.eval_max_batches,
                 cfg.batch_size,
+                eval_num_workers,
             )
         accelerator.wait_for_everyone()
 
