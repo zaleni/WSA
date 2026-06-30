@@ -167,8 +167,8 @@ wandb/
 data
 !src/lerobot/policies/fastwam/core/data/
 !src/lerobot/policies/fastwam/core/data/**
-!src/lerobot/policies/TBot_SA1_Wan/core/data/
-!src/lerobot/policies/TBot_SA1_Wan/core/data/**
+!src/lerobot/policies/WSA_Large/core/data/
+!src/lerobot/policies/WSA_Large/core/data/**
 outputs
 
 # Translations
