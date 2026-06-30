@@ -46,7 +46,7 @@ echo "PROJ_ROOT  = ${PROJ_ROOT}"
 
 cd "${PROJ_ROOT}"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-PRETRAINED_CKPT="${PRETRAINED_CKPT:-zaleni/TBot-SA1-RoboTwin}"
+PRETRAINED_CKPT="${PRETRAINED_CKPT:-zaleni/WSA-RoboTwin}"
 
 POLICY_TYPE="${POLICY_TYPE:-}"
 QWEN3_VL_PRETRAINED_PATH="${QWEN3_VL_PRETRAINED_PATH:-Qwen/Qwen3-VL-2B-Instruct}"
@@ -86,7 +86,7 @@ export BINARIZE_GRIPPER
 if (( $# > 1 )); then
     echo "Usage:"
     echo "  bash evaluation/RoboTwin/${SCRIPT_NAME} [ckpt_dir_or_hf_repo_id]"
-    echo "  PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
+    echo "  PRETRAINED_CKPT=zaleni/WSA-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
     exit 1
 fi
 
@@ -98,15 +98,15 @@ if [[ -z "${PRETRAINED_CKPT}" ]]; then
     echo "PRETRAINED_CKPT is empty."
     echo "Usage:"
     echo "  PRETRAINED_CKPT=/path/to/pretrained_model bash evaluation/RoboTwin/${SCRIPT_NAME}"
-    echo "  PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
+    echo "  PRETRAINED_CKPT=zaleni/WSA-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
     echo "  bash evaluation/RoboTwin/${SCRIPT_NAME} /path/to/pretrained_model"
     exit 1
 fi
 
-CKPT_TAG="tbot_sa1-delta"
+CKPT_TAG="wsa_base-delta"
 DEFAULT_RUN_NAME="${CKPT_TAG}-robotwin-$(date +%Y_%m_%d_%H_%M_%S)"
 RUN_NAME="${DEFAULT_RUN_NAME}"
-# RUN_NAME="tbot_sa1-3d-delta-multidata_pretrained300k-finetune-200k-s42h32-robotwin-2026_04_16_09_56_34"
+# RUN_NAME="wsa_base-3d-delta-multidata_pretrained300k-finetune-200k-s42h32-robotwin-2026_04_16_09_56_34"
 RUN_OUTPUT_PATH="${BASE_OUTPUT_PATH}/${RUN_NAME}"
 
 if [[ -e "${PRETRAINED_CKPT}" && ! -d "${PRETRAINED_CKPT}" ]]; then

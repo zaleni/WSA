@@ -168,7 +168,7 @@ def get_model_config(args):
 
     config = {
         "episode_len": args.max_publish_step,
-        "policy_class": "tbot_sa1_remote",
+        "policy_class": "wsa_base_remote",
         "policy_config": {
             "action_dim": args.action_dim,
             "states_dim": args.state_dim,

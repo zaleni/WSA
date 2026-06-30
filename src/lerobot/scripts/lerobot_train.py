@@ -40,11 +40,11 @@ from lerobot.datasets.utils import cycle, load_json, write_json
 from lerobot.optim.factory import make_optimizer_and_scheduler
 from lerobot.policies.factory import make_policy
 from lerobot.policies.names import (
-    TBOT_SA1_WAN,
-    TBOT_SA1_WAN_ALIASES,
-    TBOT_SA1_WAN_LEGACY_ALIASES,
-    is_tbot_sa1,
-    is_tbot_sa1_wan,
+    WSA_LARGE,
+    WSA_LARGE_ALIASES,
+    WSA_LARGE_LEGACY_ALIASES,
+    is_wsa_base,
+    is_wsa_large,
 )
 from lerobot.policies.pretrained import PreTrainedPolicy
 from lerobot.rl.wandb_utils import WandBLogger
@@ -67,7 +67,7 @@ from lerobot.utils.utils import (
 )
 
 FASTWAM_TRAINER_STATE_FILE = "fastwam_trainer_state.json"
-FASTWAM_POLICY_TYPES = {"fastwam", *TBOT_SA1_WAN_ALIASES}
+FASTWAM_POLICY_TYPES = {"fastwam", *WSA_LARGE_ALIASES}
 
 
 def _metric_to_float(value: Any) -> float:
@@ -82,27 +82,27 @@ def _optimizer_parameters(optimizer: Optimizer):
 
 
 def _is_fastwam_policy_type(policy_type: str | None) -> bool:
-    return policy_type == "fastwam" or is_tbot_sa1_wan(policy_type)
+    return policy_type == "fastwam" or is_wsa_large(policy_type)
 
 
 def _fastwam_policy_module(policy_type: str) -> str:
-    return "TBot_SA1_Wan" if is_tbot_sa1_wan(policy_type) else "fastwam"
+    return "WSA_Large" if is_wsa_large(policy_type) else "fastwam"
 
 
 def _fastwam_family_label(policy_type: str | None) -> str:
-    return "TBot_SA1_Wan" if is_tbot_sa1_wan(policy_type) else "FastWAM"
+    return "WSA_Large" if is_wsa_large(policy_type) else "FastWAM"
 
 
 def _fastwam_family_stats_key(policy_type: str | None) -> str:
-    return TBOT_SA1_WAN if is_tbot_sa1_wan(policy_type) else "fastwam"
+    return WSA_LARGE if is_wsa_large(policy_type) else "fastwam"
 
 
 def _fastwam_family_trainer_state_file(policy_type: str | None) -> str:
-    return "tbot_sa1_wan_trainer_state.json" if is_tbot_sa1_wan(policy_type) else FASTWAM_TRAINER_STATE_FILE
+    return "wsa_large_trainer_state.json" if is_wsa_large(policy_type) else FASTWAM_TRAINER_STATE_FILE
 
 
 def _fastwam_family_stats_filename(policy_type: str | None) -> str:
-    return "tbot_sa1_wan_dataset_stats.json" if is_tbot_sa1_wan(policy_type) else "fastwam_dataset_stats.json"
+    return "wsa_large_dataset_stats.json" if is_wsa_large(policy_type) else "fastwam_dataset_stats.json"
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -196,7 +196,7 @@ def _action_eval_seed(batch: dict[str, Any], index: int) -> int:
 
 
 @torch.no_grad()
-def evaluate_tbot_sa1_wan_action_policy(
+def evaluate_wsa_large_action_policy(
     policy: torch.nn.Module,
     dataloader,
     accelerator: Accelerator,
@@ -644,8 +644,8 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         fastwam_stats = getattr(dataset, "dataset_stats", None)
         if fastwam_stats is None and isinstance(data_stats, dict):
             fastwam_stats = data_stats.get(_fastwam_family_stats_key(cfg.policy.type))
-            if fastwam_stats is None and is_tbot_sa1_wan(cfg.policy.type):
-                for stats_alias in ("tbot_sa1_wan", *TBOT_SA1_WAN_LEGACY_ALIASES):
+            if fastwam_stats is None and is_wsa_large(cfg.policy.type):
+                for stats_alias in ("wsa_large", *WSA_LARGE_LEGACY_ALIASES):
                     fastwam_stats = data_stats.get(stats_alias)
                     if fastwam_stats is not None:
                         break
@@ -759,20 +759,20 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         )
 
     eval_dataloader = None
-    if is_tbot_sa1_wan(cfg.policy.type) and cfg.eval_freq > 0:
+    if is_wsa_large(cfg.policy.type) and cfg.eval_freq > 0:
         if is_main_process:
-            from lerobot.policies.TBot_SA1_Wan.dataset_tbot_sa1_wan import build_tbot_sa1_wan_dataset
+            from lerobot.policies.WSA_Large.dataset_wsa_large import build_wsa_large_dataset
 
             stats_cache_path = cfg.dataset.normalization_stats_path
             if stats_cache_path is None and cfg.output_dir is not None:
                 stats_cache_path = str(Path(cfg.output_dir) / _fastwam_family_stats_filename(cfg.policy.type))
 
-            eval_dataset = build_tbot_sa1_wan_dataset(
+            eval_dataset = build_wsa_large_dataset(
                 cfg.dataset,
                 stats_cache_path=stats_cache_path,
                 is_training_set=False,
             )
-            eval_num_workers = max(_env_int("LEROBOT_TBOT_SA1_WAN_EVAL_NUM_WORKERS", 0), 0)
+            eval_num_workers = max(_env_int("LEROBOT_WSA_LARGE_EVAL_NUM_WORKERS", 0), 0)
             eval_dataloader = torch.utils.data.DataLoader(
                 eval_dataset,
                 num_workers=eval_num_workers,
@@ -785,7 +785,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 worker_init_fn=None,
             )
             logging.info(
-                "Created TBot_SA1_Wan eval dataloader for periodic validation: "
+                "Created WSA_Large eval dataloader for periodic validation: "
                 "eval_freq=%d, max_batches=%d, batch_size=%d, num_workers=%d, metric=action_mse/l2",
                 cfg.eval_freq,
                 cfg.eval_max_batches,
@@ -836,7 +836,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             "update_s": AverageMeter("updt_s", ":.3f"),
             "dataloading_s": AverageMeter("data_s", ":.3f"),
         }
-        if is_tbot_sa1_wan(cfg.policy.type):
+        if is_wsa_large(cfg.policy.type):
             train_metrics["loss_3d"] = AverageMeter("loss_3d", ":.3f")
             if getattr(cfg.policy, "log_da3_teacher_timing", False):
                 train_metrics["time_3d_teacher_forward_s"] = AverageMeter("da3_s", ":.3f")
@@ -849,7 +849,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             "update_s": AverageMeter("updt_s", ":.3f"),
             "dataloading_s": AverageMeter("data_s", ":.3f"),
         }
-    elif cfg.policy.type in ["a1", "qwena1"] or is_tbot_sa1(cfg.policy.type):
+    elif cfg.policy.type in ["a1", "qwena1"] or is_wsa_base(cfg.policy.type):
         train_metrics = {
             "loss": AverageMeter("loss", ":.3f"),
             "loss_action": AverageMeter("loss_action", ":.3f"),
@@ -859,7 +859,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             "update_s": AverageMeter("updt_s", ":.3f"),
             "dataloading_s": AverageMeter("data_s", ":.3f"),
         }
-        if is_tbot_sa1(cfg.policy.type):
+        if is_wsa_base(cfg.policy.type):
             train_metrics["loss_3d"] = AverageMeter("loss_3d", ":.3f")
             if getattr(cfg.policy, "log_da3_teacher_timing", False):
                 train_metrics["time_3d_teacher_forward_s"] = AverageMeter("da3_s", ":.3f")
@@ -913,7 +913,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
 
         will_log_after_update = cfg.log_freq > 0 and (step + 1) % cfg.log_freq == 0
         policy_forward_kwargs = {}
-        if is_tbot_sa1_wan(cfg.policy.type):
+        if is_wsa_large(cfg.policy.type):
             policy_forward_kwargs["collect_metrics"] = will_log_after_update
 
         train_tracker, output_dict, did_step, update_time_s = update_policy(
@@ -927,7 +927,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             policy_forward_kwargs=policy_forward_kwargs,
             use_zero_grad_set_to_none=_is_fastwam_policy_type(cfg.policy.type),
             skip_scheduler_when_optimizer_step_skipped=_is_fastwam_policy_type(cfg.policy.type),
-            clip_optimizer_params_only=is_tbot_sa1_wan(cfg.policy.type),
+            clip_optimizer_params_only=is_wsa_large(cfg.policy.type),
         )
         accumulated_update_time += update_time_s
 
@@ -959,7 +959,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 }.items()
                 if value is not None
             }
-            if is_tbot_sa1_wan(cfg.policy.type):
+            if is_wsa_large(cfg.policy.type):
                 lambda_action = float(getattr(cfg.policy, "lambda_action", 1.0))
                 lambda_video = float(getattr(cfg.policy, "lambda_video", 1.0))
                 lambda_3d = float(getattr(cfg.policy, "lambda_3d", 1.0))
@@ -1015,12 +1015,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 wandb_logger.log_dict(wandb_log_dict, step)
             train_tracker.reset_averages()
 
-        should_eval = is_tbot_sa1_wan(cfg.policy.type) and cfg.eval_freq > 0 and step % cfg.eval_freq == 0
+        should_eval = is_wsa_large(cfg.policy.type) and cfg.eval_freq > 0 and step % cfg.eval_freq == 0
         if should_eval:
             accelerator.wait_for_everyone()
             if is_main_process and eval_dataloader is not None:
                 eval_policy = accelerator.unwrap_model(policy)
-                eval_metrics = evaluate_tbot_sa1_wan_action_policy(
+                eval_metrics = evaluate_wsa_large_action_policy(
                     eval_policy,
                     eval_dataloader,
                     accelerator,
@@ -1034,7 +1034,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
                 ]
                 summary_parts.append(f"batches={int(eval_metrics['num_batches'])}")
                 summary_parts.append(f"samples={int(eval_metrics['num_samples'])}")
-                logging.info("TBot_SA1_Wan eval @ step %d: %s", step, ", ".join(summary_parts))
+                logging.info("WSA_Large eval @ step %d: %s", step, ", ".join(summary_parts))
                 if wandb_logger:
                     wandb_logger.log_dict(eval_metrics, step, mode="eval")
             accelerator.wait_for_everyone()

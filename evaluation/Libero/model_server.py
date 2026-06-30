@@ -32,23 +32,23 @@ from lerobot.configs.policies import PreTrainedConfig
 from lerobot.configs.train import TrainPipelineConfig
 from lerobot.configs.types import RTCAttentionSchedule
 from lerobot.datasets.utils import load_json
-from lerobot.policies.TBot_SA1_Wan.dataset_tbot_sa1_wan import resolve_tbot_sa1_wan_video_size
-from lerobot.policies.TBot_SA1_Wan.modeling_tbot_sa1_wan import TBotSA1WanPolicy
-from lerobot.policies.TBot_SA1_Wan.stats_adapter import ensure_tbot_sa1_wan_stats_format
-from lerobot.policies.TBot_SA1_Wan.text_cache import build_tbot_sa1_wan_prompt, build_text_embedding_cache_path
-from lerobot.policies.TBot_SA1_Wan.core.data.lerobot.utils.normalizer import (
+from lerobot.policies.WSA_Large.dataset_wsa_large import resolve_wsa_large_video_size
+from lerobot.policies.WSA_Large.modeling_wsa_large import WSALargePolicy
+from lerobot.policies.WSA_Large.stats_adapter import ensure_wsa_large_stats_format
+from lerobot.policies.WSA_Large.text_cache import build_wsa_large_prompt, build_text_embedding_cache_path
+from lerobot.policies.WSA_Large.core.data.lerobot.utils.normalizer import (
     SingleFieldLinearNormalizer,
     load_dataset_stats_from_json,
 )
-from lerobot.policies.TBot_SA1.modeling_tbot_sa1_rtc import TBotSA1RTCPolicy
-from lerobot.policies.TBot_SA1.transform_tbot_sa1 import Qwen3_VLProcessorTransformFn
+from lerobot.policies.WSA_Base.modeling_wsa_base_rtc import WSABaseRTCPolicy
+from lerobot.policies.WSA_Base.transform_wsa_base import Qwen3_VLProcessorTransformFn
 from lerobot.policies.factory import get_policy_class
 from lerobot.policies.names import (
-    TBOT_SA1,
-    TBOT_SA1_WAN,
-    TBOT_SA1_WAN_LEGACY_ALIASES,
-    is_tbot_sa1,
-    is_tbot_sa1_wan,
+    WSA_BASE,
+    WSA_LARGE,
+    WSA_LARGE_LEGACY_ALIASES,
+    is_wsa_base,
+    is_wsa_large,
 )
 from lerobot.policies.rtc import RTCConfig, RTCProcessor
 from lerobot.transforms.constants import get_mask_mapping
@@ -129,7 +129,7 @@ def _env_int_fallback(value: int | None, env_name: str, default: int) -> int:
 
 
 def parse_args() -> ServeArgs:
-    parser = argparse.ArgumentParser(description="Serve a fine-tuned TBotSA1 policy for LIBERO evaluation.")
+    parser = argparse.ArgumentParser(description="Serve a fine-tuned WSABase policy for LIBERO evaluation.")
     parser.add_argument("--ckpt_path", required=True, help="Checkpoint step dir or pretrained_model dir.")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8000)
@@ -169,7 +169,7 @@ def parse_args() -> ServeArgs:
         "--rtc-enabled",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Enable runtime-only Real-Time Chunking guidance for TBotSA1 inference.",
+        help="Enable runtime-only Real-Time Chunking guidance for WSABase inference.",
     )
     parser.add_argument("--rtc_execution_horizon", type=int, default=10)
     parser.add_argument("--rtc_max_guidance_weight", type=float, default=10.0)
@@ -329,8 +329,8 @@ def coerce_history(image_value: Any) -> np.ndarray:
     return np.stack([frames[0], frames[-1]], axis=0)
 
 
-def select_tbot_sa1_wan_stats_payload(stats_payload: dict[str, Any], stats_key: str | None) -> dict[str, Any]:
-    for stats_alias in (TBOT_SA1_WAN, "tbot_sa1_wan", *TBOT_SA1_WAN_LEGACY_ALIASES):
+def select_wsa_large_stats_payload(stats_payload: dict[str, Any], stats_key: str | None) -> dict[str, Any]:
+    for stats_alias in (WSA_LARGE, "wsa_large", *WSA_LARGE_LEGACY_ALIASES):
         if stats_alias in stats_payload and isinstance(stats_payload[stats_alias], dict):
             return stats_payload[stats_alias]
     if stats_key is not None and stats_key in stats_payload and isinstance(stats_payload[stats_key], dict):
@@ -344,15 +344,15 @@ def resolve_optional_path(path_value: str | None) -> Path | None:
     return Path(path_value).expanduser()
 
 
-class TBotSA1LiberoPolicy:
+class WSABaseLiberoPolicy:
     def __init__(self, args: ServeArgs):
         self.args = args
         self.ckpt_dir = resolve_ckpt_dir(args.ckpt_path)
         self.train_cfg = load_train_config_or_none(self.ckpt_dir)
 
         config = PreTrainedConfig.from_pretrained(self.ckpt_dir)
-        if not is_tbot_sa1(config.type):
-            raise ValueError(f"Expected a TBot_SA1 checkpoint, got config.type={config.type!r}")
+        if not is_wsa_base(config.type):
+            raise ValueError(f"Expected a WSA_Base checkpoint, got config.type={config.type!r}")
         apply_runtime_config_overrides(config, args)
         self.device = resolve_device(args.device)
         self.load_device = resolve_device(args.load_device) if args.load_device else ("cpu" if self.device != "cpu" else "cpu")
@@ -381,7 +381,7 @@ class TBotSA1LiberoPolicy:
             config.n_action_steps = min(args.infer_horizon, config.chunk_size)
         self.infer_horizon = int(args.infer_horizon or getattr(config, "n_action_steps", config.chunk_size))
 
-        policy_cls = TBotSA1RTCPolicy if args.rtc_enabled else get_policy_class(config.type)
+        policy_cls = WSABaseRTCPolicy if args.rtc_enabled else get_policy_class(config.type)
         self.policy = policy_cls.from_pretrained(config=config, pretrained_name_or_path=self.ckpt_dir)
         self.policy.config.device = self.device
         setattr(self.policy.config, "cosmos_device", self.cosmos_device)
@@ -422,7 +422,7 @@ class TBotSA1LiberoPolicy:
             or getattr(config, "qwen3_vl_pretrained_path", None)
         )
         if processor_path is None:
-            raise ValueError("Failed to resolve a Qwen3-VL processor path for TBotSA1 serving.")
+            raise ValueError("Failed to resolve a Qwen3-VL processor path for WSABase serving.")
         self.processor_fn = Qwen3_VLProcessorTransformFn(
             pretrained_model_name_or_path=processor_path,
             max_length=int(getattr(config, "tokenizer_max_length", 48)),
@@ -449,7 +449,7 @@ class TBotSA1LiberoPolicy:
             self.delta_mask = get_mask_mapping(self.stats_key).detach().cpu().numpy().astype(np.float32)
 
         self._metadata = {
-            "model_type": TBOT_SA1,
+            "model_type": WSA_BASE,
             "deployment": "libero_eval",
             "checkpoint_dir": str(self.ckpt_dir),
             "stats_key": self.stats_key,
@@ -645,15 +645,15 @@ class TBotSA1LiberoPolicy:
         }
 
 
-class TBotSA1WanLiberoPolicy:
+class WSALargeLiberoPolicy:
     def __init__(self, args: ServeArgs):
         self.args = args
         self.ckpt_dir = resolve_ckpt_dir(args.ckpt_path)
         self.train_cfg = load_train_config_or_none(self.ckpt_dir)
 
         config = PreTrainedConfig.from_pretrained(self.ckpt_dir)
-        if not is_tbot_sa1_wan(config.type):
-            raise ValueError(f"Expected a TBot_SA1_Wan checkpoint, got config.type={config.type!r}")
+        if not is_wsa_large(config.type):
+            raise ValueError(f"Expected a WSA_Large checkpoint, got config.type={config.type!r}")
         apply_runtime_config_overrides(config, args)
         self.load_text_encoder = bool(args.load_text_encoder)
         config.load_text_encoder = self.load_text_encoder
@@ -668,7 +668,7 @@ class TBotSA1WanLiberoPolicy:
         self.runtime_dtype = resolve_runtime_dtype(args.dtype, self.device)
         config.device = self.load_device
 
-        self.policy = TBotSA1WanPolicy.from_pretrained(
+        self.policy = WSALargePolicy.from_pretrained(
             config=config,
             pretrained_name_or_path=self.ckpt_dir,
         )
@@ -681,7 +681,7 @@ class TBotSA1WanLiberoPolicy:
         train_action_mode = None if self.train_cfg is None else getattr(self.train_cfg.dataset, "action_mode", None)
         self.action_mode = args.action_mode or train_action_mode or "abs"
         if self.action_mode != "abs":
-            raise NotImplementedError("TBot_SA1_Wan LIBERO serving currently expects abs action mode.")
+            raise NotImplementedError("WSA_Large LIBERO serving currently expects abs action mode.")
 
         self.action_dim = int(getattr(config, "action_dim", 24))
         self.target_proprio_dim = int(getattr(config, "proprio_dim", 24))
@@ -692,13 +692,13 @@ class TBotSA1WanLiberoPolicy:
             raise ValueError("text_embed_cache_max_entries must be non-negative.")
         if not self.load_text_encoder and not self.text_embed_cache_dir.is_dir():
             raise FileNotFoundError(
-                "TBot_SA1_Wan serving defaults to cached LIBERO text embeddings, but "
+                "WSA_Large serving defaults to cached LIBERO text embeddings, but "
                 f"TEXT_EMBED_CACHE_DIR does not exist: {self.text_embed_cache_dir}. "
                 "Precompute the cache there, set TEXT_EMBED_CACHE_DIR to the correct directory, "
                 "or set LOAD_TEXT_ENCODER=true to encode prompts on the fly."
             )
         self._cached_text_contexts: OrderedDict[str, tuple[torch.Tensor, torch.Tensor]] = OrderedDict()
-        self.input_height, self.input_width = resolve_tbot_sa1_wan_video_size(
+        self.input_height, self.input_width = resolve_wsa_large_video_size(
             2,
             (args.request_image_height, args.request_image_width),
             True,
@@ -707,7 +707,7 @@ class TBotSA1WanLiberoPolicy:
         self.state_normalizer, self.state_stats_key = self._build_state_normalizer()
 
         self._metadata = {
-            "model_type": TBOT_SA1_WAN,
+            "model_type": WSA_LARGE,
             "deployment": "libero_eval",
             "checkpoint_dir": str(self.ckpt_dir),
             "stats_key": self.state_stats_key,
@@ -736,7 +736,7 @@ class TBotSA1WanLiberoPolicy:
 
     @staticmethod
     def _image_to_chw_float(image_value: Any) -> torch.Tensor:
-        frame = TBotSA1WanLiberoPolicy._latest_frame(image_value)
+        frame = WSALargeLiberoPolicy._latest_frame(image_value)
         tensor = torch.from_numpy(frame).permute(2, 0, 1).contiguous()
         return tensor.to(torch.float32) / 255.0
 
@@ -759,7 +759,7 @@ class TBotSA1WanLiberoPolicy:
     def _resolve_text_embed_cache_dir(self) -> Path:
         if self.args.text_embed_cache_dir is not None and str(self.args.text_embed_cache_dir).strip():
             return Path(self.args.text_embed_cache_dir).expanduser()
-        new_cache_dir = REPO_ROOT / "outputs" / TBOT_SA1_WAN / "text_embeds" / "libero"
+        new_cache_dir = REPO_ROOT / "outputs" / WSA_LARGE / "text_embeds" / "libero"
         return new_cache_dir
 
     def _build_state_normalizer(self) -> tuple[SingleFieldLinearNormalizer, str]:
@@ -781,12 +781,12 @@ class TBotSA1WanLiberoPolicy:
         errors: list[str] = []
         for stats_path in stats_candidates:
             if not stats_path.is_file():
-                errors.append(f"Missing TBot_SA1_Wan stats file: {stats_path}")
+                errors.append(f"Missing WSA_Large stats file: {stats_path}")
                 continue
             try:
                 raw_payload = load_dataset_stats_from_json(str(stats_path))
-                selected_payload = select_tbot_sa1_wan_stats_payload(raw_payload, self.args.stats_key)
-                converted_payload = ensure_tbot_sa1_wan_stats_format(
+                selected_payload = select_wsa_large_stats_payload(raw_payload, self.args.stats_key)
+                converted_payload = ensure_wsa_large_stats_format(
                     selected_payload,
                     shape_meta=shape_meta,
                     require_state=True,
@@ -814,7 +814,7 @@ class TBotSA1WanLiberoPolicy:
                 errors.append(f"{stats_path}: {exc}")
 
         raise FileNotFoundError(
-            "Could not load TBot_SA1_Wan normalization stats. "
+            "Could not load WSA_Large normalization stats. "
             f"Tried: {', '.join(errors) if errors else '(none)'}"
         )
 
@@ -829,9 +829,9 @@ class TBotSA1WanLiberoPolicy:
         cache_path = build_text_embedding_cache_path(self.text_embed_cache_dir, prompt, self.text_embed_context_len)
         if not cache_path.is_file():
             raise FileNotFoundError(
-                "Missing TBot_SA1_Wan cached text embedding for prompt. "
+                "Missing WSA_Large cached text embedding for prompt. "
                 f"Expected {cache_path}. "
-                "Either precompute the cache under `outputs/TBot_SA1_Wan/text_embeds/libero` "
+                "Either precompute the cache under `outputs/WSA_Large/text_embeds/libero` "
                 "or set LOAD_TEXT_ENCODER=true to encode prompts on the fly."
             )
 
@@ -896,7 +896,7 @@ class TBotSA1WanLiberoPolicy:
         prefix = "A video recorded from a robot's point of view executing the following instruction:"
         if prompt.startswith(prefix):
             return prompt
-        return build_tbot_sa1_wan_prompt(prompt)
+        return build_wsa_large_prompt(prompt)
 
     def _resolve_state(self, obs: dict[str, Any]) -> np.ndarray:
         state = obs.get("state")
@@ -934,7 +934,7 @@ class TBotSA1WanLiberoPolicy:
             action_pred = self.policy.predict_action_chunk(batch)
 
         if action_pred.ndim != 3:
-            raise RuntimeError(f"Unexpected TBot_SA1_Wan action prediction shape: {tuple(action_pred.shape)}")
+            raise RuntimeError(f"Unexpected WSA_Large action prediction shape: {tuple(action_pred.shape)}")
         model_action_pred = action_pred[0, : self.infer_horizon, : self.action_dim]
         action_np = model_action_pred.detach().cpu().numpy().astype(np.float32)
 
@@ -950,10 +950,10 @@ def main(args: ServeArgs) -> None:
     logging.info("Serve args:\n%s", json.dumps(asdict(args), indent=2, ensure_ascii=False))
     ckpt_dir = resolve_ckpt_dir(args.ckpt_path)
     config = PreTrainedConfig.from_pretrained(ckpt_dir)
-    if is_tbot_sa1(config.type):
-        policy = TBotSA1LiberoPolicy(args)
-    elif is_tbot_sa1_wan(config.type):
-        policy = TBotSA1WanLiberoPolicy(args)
+    if is_wsa_base(config.type):
+        policy = WSABaseLiberoPolicy(args)
+    elif is_wsa_large(config.type):
+        policy = WSALargeLiberoPolicy(args)
     else:
         raise ValueError(f"Unsupported LIBERO checkpoint type: {config.type!r}")
 
@@ -963,7 +963,7 @@ def main(args: ServeArgs) -> None:
     except OSError as exc:
         local_ip = "unknown"
         logging.warning("Failed to resolve hostname %s to an IP address: %s", hostname, exc)
-    logging.info("Creating LIBERO TBotSA1 server (host=%s, ip=%s, port=%s)", hostname, local_ip, args.port)
+    logging.info("Creating LIBERO WSABase server (host=%s, ip=%s, port=%s)", hostname, local_ip, args.port)
     logging.info("Server metadata: %s", json.dumps(policy.metadata, indent=2, ensure_ascii=False))
 
     server = WebsocketPolicyServer(

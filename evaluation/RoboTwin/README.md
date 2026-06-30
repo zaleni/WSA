@@ -3,15 +3,15 @@
 This document provides instructions for reproducing our experimental results
 with [RoboTwin2.0](https://github.com/RoboTwin-Platform/RoboTwin).
 
-The main entry point is `eval_randomized_50.sh`, which runs TBot-SA1 on the
+The main entry point is `eval_randomized_50.sh`, which runs WSA on the
 RoboTwin randomized 50-task benchmark. By default it loads the released
-`zaleni/TBot-SA1-RoboTwin` checkpoint; you can override the checkpoint, task
+`zaleni/WSA-RoboTwin` checkpoint; you can override the checkpoint, task
 range, episode count, and GPU allocation with environment variables.
 
 ## Introduction
 
-- `eval_randomized_50.sh`: maintained TBot-SA1 randomized 50-task evaluation
-  wrapper. It defaults to `PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin`.
+- `eval_randomized_50.sh`: maintained WSA randomized 50-task evaluation
+  wrapper. It defaults to `PRETRAINED_CKPT=zaleni/WSA-RoboTwin`.
 - `inference.py`: shared RoboTwin evaluator called by the shell wrapper.
 - `eval_config.py`: resolves per-task `infer_horizon` and
   `binarize_gripper` from `configs/robotwin_eval_config.yaml`.
@@ -23,7 +23,7 @@ You can follow the official [RoboTwin installation](https://robotwin-platform.gi
 simulator environment setup.
 
 This repository expects the RoboTwin codebase to live under
-`third_party/RoboTwin`. If you cloned TBot-SA1 without submodules, initialize the
+`third_party/RoboTwin`. If you cloned WSA without submodules, initialize the
 submodule first:
 
 ```bash
@@ -39,11 +39,11 @@ git clone https://github.com/RoboTwin-Platform/RoboTwin.git third_party/RoboTwin
 
 ### Environment Set-up
 
-After the main TBot-SA1 environment is ready, keep using the same environment
+After the main WSA environment is ready, keep using the same environment
 and add the RoboTwin2.0 dependencies.
 
 ```bash
-conda activate tbot_sa1
+conda activate wsa_base
 
 sudo apt update
 sudo apt install -y libvulkan1 mesa-vulkan-drivers vulkan-tools
@@ -51,7 +51,7 @@ vulkaninfo
 ```
 
 Before running RoboTwin's installer, replace RoboTwin's default requirements
-with the TBot-SA1-compatible extra requirements in this directory. The installer
+with the WSA-compatible extra requirements in this directory. The installer
 will run `pip install -r script/requirements.txt`, so do not install the same
 file separately unless you are skipping `_install.sh`.
 
@@ -70,17 +70,17 @@ cd ../..
 ```
 
 
-For TBot-SA1, install `transformers==4.57.1` and patch the installed Qwen3-VL
-code with `src/lerobot/policies/TBot_SA1/transformers_replace/models`.
+For WSA, install `transformers==4.57.1` and patch the installed Qwen3-VL
+code with `src/lerobot/policies/WSA_Base/transformers_replace/models`.
 ```bash
 TRANSFORMERS_DIR=${CONDA_PREFIX}/lib/python3.10/site-packages/transformers/
-cp -r src/lerobot/policies/TBot_SA1/transformers_replace/models ${TRANSFORMERS_DIR}
+cp -r src/lerobot/policies/WSA_Base/transformers_replace/models ${TRANSFORMERS_DIR}
 ```
 
 ## Quick Start
 
 ```bash
-PRETRAINED_CKPT=zaleni/TBot-SA1-RoboTwin \
+PRETRAINED_CKPT=zaleni/WSA-RoboTwin \
 QWEN3_VL_PRETRAINED_PATH=Qwen/Qwen3-VL-2B-Instruct \
 QWEN3_VL_PROCESSOR_PATH=Qwen/Qwen3-VL-2B-Instruct \
 COSMOS_TOKENIZER_PATH_OR_NAME=nvidia/Cosmos-Tokenizer-CI8x8 \
@@ -94,7 +94,7 @@ bash evaluation/RoboTwin/eval_randomized_50.sh
 ## Common Options
 
 - `PRETRAINED_CKPT`: checkpoint directory or Hugging Face model id. Defaults to
-  `zaleni/TBot-SA1-RoboTwin`.
+  `zaleni/WSA-RoboTwin`.
 - `GPU_IDS`: comma-separated GPUs used by the scheduler, for example `0,1`.
 - `MAX_JOBS_PER_GPU`: maximum parallel RoboTwin tasks per GPU. Lower this if
   memory is tight.

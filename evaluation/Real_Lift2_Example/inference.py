@@ -192,7 +192,7 @@ def print_chunk_last_action(chunk_idx: int, action_seq) -> None:
     last_action = np.asarray(action_seq[-1], dtype=np.float32).reshape(-1)
     formatted = ", ".join(f"{x:8.4f}" for x in last_action)
     print(
-        f"[TBotSA1] chunk={chunk_idx} received_horizon={len(action_seq)} "
+        f"[WSABase] chunk={chunk_idx} received_horizon={len(action_seq)} "
         f"last_step={len(action_seq) - 1} target=[{formatted}]"
     )
 
@@ -287,7 +287,7 @@ class RTCActionQueue:
             indexes_diff = max(0, self.last_index - int(action_index_before_inference))
             if indexes_diff != reported_delay:
                 print(
-                    "[TBotSA1] RTC queue observed consumed steps do not match reported delay: "
+                    "[WSABase] RTC queue observed consumed steps do not match reported delay: "
                     f"observed={indexes_diff}, reported={reported_delay}. "
                     "Using the observed queue consumption for prefix alignment."
                 )
@@ -519,19 +519,19 @@ def maybe_run_first_safety_check(args, response, obs_dict, action_dim, *, auto_c
     qpos_full[: min(args.state_dim, qpos.size)] = qpos[: args.state_dim]
 
     if not isinstance(response, dict) or response.get("actions", None) is None:
-        print("[SafeGuard] TBotSA1 response is missing `actions`, aborting before robot execution.")
+        print("[SafeGuard] WSABase response is missing `actions`, aborting before robot execution.")
         return False
 
     actions_seq = np.asarray(response["actions"], dtype=np.float32)
     if actions_seq.ndim != 2 or actions_seq.shape[1] != action_dim:
         print(
-            f"[SafeGuard] TBotSA1 returned unexpected action shape: {actions_seq.shape}, "
+            f"[SafeGuard] WSABase returned unexpected action shape: {actions_seq.shape}, "
             f"expected (N, {action_dim})."
         )
         return False
 
     print("\n" + "=" * 72)
-    print("[First Safety Check] Received first TBotSA1 action chunk, pausing before execution")
+    print("[First Safety Check] Received first WSABase action chunk, pausing before execution")
     print("=" * 72)
     print("Current qpos:")
     print("[" + ", ".join([f"{x:8.4f}" for x in qpos_full]) + "]")
@@ -745,7 +745,7 @@ def update_image_history(history_target, args, shm_dict, shapes, *, warning_stat
         history_target.observe(obs_dict["images"])
     except Exception as exc:
         if not warning_state.get("emitted", False):
-            print(f"[TBotSA1] Failed to update image history during chunk execution: {exc}")
+            print(f"[WSABase] Failed to update image history during chunk execution: {exc}")
             warning_state["emitted"] = True
 
 
@@ -773,17 +773,17 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
 
     metadata_client = build_client()
     server_metadata = {}
-    print(f"[TBotSA1] WebSocket inference enabled: {ws_url}")
+    print(f"[WSABase] WebSocket inference enabled: {ws_url}")
     if send_image_height is not None and send_image_width is not None:
         print(
-            f"[TBotSA1] Robot-side request images will be downsampled to "
+            f"[WSABase] Robot-side request images will be downsampled to "
             f"{send_image_height}x{send_image_width} before websocket transfer."
         )
     else:
-        print("[TBotSA1] Robot-side request images use the native camera resolution.")
+        print("[WSABase] Robot-side request images use the native camera resolution.")
     try:
         server_metadata = metadata_client.metadata
-        print(f"[TBotSA1] server metadata keys: {list(server_metadata.keys())}")
+        print(f"[WSABase] server metadata keys: {list(server_metadata.keys())}")
     except Exception as exc:
         if args.inference_mode == "rtc":
             raise RuntimeError(
@@ -808,21 +808,21 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
         server_execution_horizon = server_metadata.get("rtc_execution_horizon")
         if server_execution_horizon is not None and int(server_execution_horizon) != int(args.rtc_execution_horizon):
             print(
-                "[TBotSA1] Warning: robot/server RTC execution horizon mismatch: "
+                "[WSABase] Warning: robot/server RTC execution horizon mismatch: "
                 f"robot={args.rtc_execution_horizon}, server={server_execution_horizon}."
             )
         print(
-            "[TBotSA1] Server-side RTC is enabled with "
+            "[WSABase] Server-side RTC is enabled with "
             f"execution_horizon={server_metadata.get('rtc_execution_horizon')} "
             f"and schedule={server_metadata.get('rtc_prefix_attention_schedule')}."
         )
         if rtc_action_mode == "delta":
             print(
-                "[TBotSA1] RTC will send absolute leftover actions back to the server for "
+                "[WSABase] RTC will send absolute leftover actions back to the server for "
                 "delta-action re-anchoring."
             )
         else:
-            print("[TBotSA1] RTC will reuse model-space leftover actions directly.")
+            print("[WSABase] RTC will reuse model-space leftover actions directly.")
     print_manual_home_help()
     enable_console_key_mode()
     auto_confirm_next_first_chunk = False
@@ -895,7 +895,7 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                                 )
                                 reconnect_exc = result.get("reconnect_error")
                                 if reconnect_exc is not None:
-                                    print(f"[TBotSA1] reconnect failed: {reconnect_exc}")
+                                    print(f"[WSABase] reconnect failed: {reconnect_exc}")
                                 timestep += 1
                                 continue
 
@@ -908,7 +908,7 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                         action = write_zero_action(
                             shm_dict,
                             action_dim,
-                            "[SafeGuard] TBotSA1 server returned nothing, forcing zero action for this cycle.",
+                            "[SafeGuard] WSABase server returned nothing, forcing zero action for this cycle.",
                         )
                         timestep += 1
                         continue
@@ -918,7 +918,7 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                         action = write_zero_action(
                             shm_dict,
                             action_dim,
-                            "[SafeGuard] TBotSA1 returned an empty action sequence, forcing zero action for this cycle.",
+                            "[SafeGuard] WSABase returned an empty action sequence, forcing zero action for this cycle.",
                         )
                         timestep += 1
                         continue
@@ -1005,10 +1005,10 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                             if maybe_result.get("ok", False):
                                 next_response = maybe_result.get("response")
                             else:
-                                print(f"[TBotSA1] background prefetch failed: {maybe_result['error']}")
+                                print(f"[WSABase] background prefetch failed: {maybe_result['error']}")
                                 reconnect_exc = maybe_result.get("reconnect_error")
                                 if reconnect_exc is not None:
-                                    print(f"[TBotSA1] reconnect failed: {reconnect_exc}")
+                                    print(f"[WSABase] reconnect failed: {reconnect_exc}")
 
                         if not history_updated_this_step:
                             update_image_history(
@@ -1089,10 +1089,10 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                     maybe_result = prefetcher.poll()
                     if maybe_result is not None:
                         if not maybe_result.get("ok", False):
-                            print(f"[TBotSA1] rtc background inference failed: {maybe_result['error']}")
+                            print(f"[WSABase] rtc background inference failed: {maybe_result['error']}")
                             reconnect_exc = maybe_result.get("reconnect_error")
                             if reconnect_exc is not None:
-                                print(f"[TBotSA1] reconnect failed: {reconnect_exc}")
+                                print(f"[WSABase] reconnect failed: {reconnect_exc}")
                         else:
                             response = maybe_result.get("response")
                             if response is None:
@@ -1142,7 +1142,7 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                                         and not rtc_queue_warning_emitted
                                     ):
                                         print(
-                                            "[TBotSA1] rtc_queue_threshold looks too small for the observed latency. "
+                                            "[WSABase] rtc_queue_threshold looks too small for the observed latency. "
                                             f"threshold={args.rtc_queue_threshold}, "
                                             f"execution_horizon={args.rtc_execution_horizon}, "
                                             f"real_delay={real_delay}."
@@ -1252,7 +1252,7 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                         client = build_client()
                         client.reset()
                     except Exception as reconnect_exc:
-                        print(f"[TBotSA1] reconnect failed: {reconnect_exc}")
+                        print(f"[WSABase] reconnect failed: {reconnect_exc}")
                     timestep += 1
                     continue
 
@@ -1260,7 +1260,7 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                     action = write_zero_action(
                         shm_dict,
                         action_dim,
-                        "[SafeGuard] TBotSA1 server returned nothing, forcing zero action for this cycle.",
+                        "[SafeGuard] WSABase server returned nothing, forcing zero action for this cycle.",
                     )
                     timestep += 1
                     continue
@@ -1270,7 +1270,7 @@ def inference_process(args, config, shm_dict, shapes, ros_proc, manual_home_comm
                     action = write_zero_action(
                         shm_dict,
                         action_dim,
-                        "[SafeGuard] TBotSA1 returned an empty action sequence, forcing zero action for this cycle.",
+                        "[SafeGuard] WSABase returned an empty action sequence, forcing zero action for this cycle.",
                     )
                     timestep += 1
                     continue

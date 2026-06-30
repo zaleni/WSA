@@ -1,6 +1,6 @@
 # Real Lift2 Example
 
-This example shows a Lift2 real-robot setup for TBot-SA1. The flow is split
+This example shows a Lift2 real-robot setup for WSA. The flow is split
 across two machines:
 
 - `serve`: loads the checkpoint and answers websocket requests.
@@ -8,7 +8,7 @@ across two machines:
 
 ## Entry Points
 
-- `01_serve_tbot_sa1_real_lift2.sh`: start the TBot-SA1 server.
+- `01_serve_wsa_base_real_lift2.sh`: start the WSA server.
 - `run_real_lift2_inference.sh`: start the robot-side loop.
 - `02_inference_lift2.sh`: one-shot launcher for the full stack.
 - `test_remote_server.py`: connectivity smoke test.
@@ -27,10 +27,10 @@ across two machines:
 Serve:
 
 ```bash
-CHECKPOINT_DIR=/path/to/TBot-SA1/checkpoints/060000 \
+CHECKPOINT_DIR=/path/to/WSA/checkpoints/060000 \
 ACTION_MODE=abs \
 INFER_HORIZON=50 \
-bash evaluation/Real_Lift2_Example/01_serve_tbot_sa1_real_lift2.sh
+bash evaluation/Real_Lift2_Example/01_serve_wsa_base_real_lift2.sh
 ```
 
 `CHECKPOINT_DIR` can point to a checkpoint step dir or directly to

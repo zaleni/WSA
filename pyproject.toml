@@ -17,14 +17,14 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
-homepage = "https://github.com/zaleni/TBot-SA1"
-source = "https://github.com/zaleni/TBot-SA1"
-issues = "https://github.com/zaleni/TBot-SA1/issues"
+homepage = "https://github.com/zaleni/WSA"
+source = "https://github.com/zaleni/WSA"
+issues = "https://github.com/zaleni/WSA/issues"
 
 [project]
 name = "lerobot"
 version = "1.0"
-description = "TBot_SA1 training and inference code for robotic manipulation"
+description = "WSA Base training and inference code for robotic manipulation"
 readme = "README.md"
 license = { text = "CC BY-NC-SA 4.0" }
 requires-python = ">=3.10"

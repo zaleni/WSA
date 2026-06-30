@@ -213,7 +213,7 @@ def check_schema(info: dict[str, Any], report: Report, expect_robot_type: str | 
         get_mask_mapping(robot_type, features)
         return str(resolved)
     except Exception as exc:
-        report.error(f"TBotSA1 transform mapping check failed: {type(exc).__name__}: {exc}")
+        report.error(f"WSABase transform mapping check failed: {type(exc).__name__}: {exc}")
         return None
 
 

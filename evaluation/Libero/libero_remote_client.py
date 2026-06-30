@@ -53,7 +53,7 @@ def build_history_stack(history_frames: list[np.ndarray], image_history_interval
 
 
 class LiberoRemoteClient:
-    """Small helper for LIBERO evaluation loops that query an out-of-process TBotSA1 policy server."""
+    """Small helper for LIBERO evaluation loops that query an out-of-process WSABase policy server."""
 
     def __init__(self, ws_url: str, image_history_interval: int = 15) -> None:
         self._policy = WebsocketClientPolicy(host=ws_url)

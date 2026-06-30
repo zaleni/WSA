@@ -76,7 +76,7 @@ def parse_args(known=False):
     parser.add_argument("--frame_rate", type=int, default=60, help="Control frame rate.")
     parser.add_argument("--gripper_gate", type=float, default=-1, help="Optional gripper threshold.")
     parser.add_argument("--prompt", type=str, default="Clear the junk and items off the desktop.")
-    parser.add_argument("--ws_url", type=str, default="", help="TBotSA1 websocket URL.")
+    parser.add_argument("--ws_url", type=str, default="", help="WSABase websocket URL.")
     parser.add_argument("--image_history_interval", type=int, default=15, help="History interval in frames.")
     parser.add_argument(
         "--send_image_height",

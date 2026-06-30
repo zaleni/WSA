@@ -189,12 +189,13 @@ class FastWAMNativeSchedulerConfig(LRSchedulerConfig):
         )
 
 
+@LRSchedulerConfig.register_subclass("wsa_large_native")
+@LRSchedulerConfig.register_subclass("WSA_Large_native")
 @LRSchedulerConfig.register_subclass("tbot_sa1_wan_native")
 @LRSchedulerConfig.register_subclass("TBot_SA1_Wan_native")
-@LRSchedulerConfig.register_subclass("tbot_sa1_wan_native")
 @dataclass
-class TBotSA1WanNativeSchedulerConfig(FastWAMNativeSchedulerConfig):
-    """TBot_SA1_Wan native trainer scheduler behavior."""
+class WSALargeNativeSchedulerConfig(FastWAMNativeSchedulerConfig):
+    """WSA_Large native trainer scheduler behavior."""
 
 
 def save_scheduler_state(scheduler: LRScheduler, save_dir: Path) -> None:

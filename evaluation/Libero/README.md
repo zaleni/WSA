@@ -1,9 +1,9 @@
 # LIBERO Evaluation
 
-This document provides instructions for evaluating TBot-SA1 on LIBERO with a
+This document provides instructions for evaluating WSA on LIBERO with a
 split two-environment setup:
 
-- `tbot_sa1` environment: serves policy inference over a local websocket.
+- `wsa_base` environment: serves policy inference over a local websocket.
 - `libero` environment: runs LIBERO benchmark rollouts.
 
 The two processes usually run on the same machine and communicate through a
@@ -11,7 +11,7 @@ local websocket such as `ws://127.0.0.1:8000`.
 
 ## Relevant files
 
-- `01_serve_tbot_sa1_libero.sh`: start the TBot-SA1 policy server.
+- `01_serve_wsa_base_libero.sh`: start the WSA policy server.
 - `eval.sh`: run LIBERO benchmark rollouts.
 - `inference.py`: main LIBERO evaluation logic.
 - `model_server.py`: policy server entrypoint.
@@ -26,7 +26,7 @@ Recommended layout: keep LIBERO at `third_party/LIBERO`.
 You need dependencies on both sides:
 
 - `libero` env: official LIBERO stack, plus this repo's evaluator extras.
-- `tbot_sa1` env: TBot-SA1 serving stack, plus `tyro`, `matplotlib`,
+- `wsa_base` env: WSA serving stack, plus `tyro`, `matplotlib`,
   `mediapy`, `websockets`, and `msgpack`.
 
 Because LIBERO evaluation uses a separate environment, it is fine to follow the
@@ -49,11 +49,11 @@ conda activate libero
 bash evaluation/Libero/install_libero.sh
 ```
 
-If the `tbot_sa1` environment does not already have the extra serve-side
+If the `wsa_base` environment does not already have the extra serve-side
 dependencies, install:
 
 ```bash
-conda activate tbot_sa1
+conda activate wsa_base
 pip install tyro matplotlib mediapy websockets msgpack
 ```
 
@@ -95,7 +95,7 @@ do
 done
 ```
 
-The downloaded folders are usually LeRobot v2.1 datasets. TBot-SA1 training
+The downloaded folders are usually LeRobot v2.1 datasets. WSA training
 expects LeRobot v3.0 folders under `LIBERO_ROOT`, for example
 `libero_goal_no_noops_1.0.0_lerobot_v30`.
 
@@ -147,10 +147,10 @@ the training launcher.
 
 ## Run
 
-1. Start the policy server in the `tbot_sa1` environment:
+1. Start the policy server in the `wsa_base` environment:
 
 ```bash
-conda activate tbot_sa1
+conda activate wsa_base
 
 PORT=8000 \
 CHECKPOINT_DIR=/path/to/checkpoints/last/pretrained_model \
@@ -159,7 +159,7 @@ COSMOS_TOKENIZER_PATH_OR_NAME=nvidia/Cosmos-Tokenizer-CI8x8 \
 STATS_KEY=franka \
 ACTION_MODE=abs \
 INFER_HORIZON=10 \
-bash evaluation/Libero/01_serve_tbot_sa1_libero.sh
+bash evaluation/Libero/01_serve_wsa_base_libero.sh
 ```
 
 2. Start the LIBERO benchmark in the `libero` environment:

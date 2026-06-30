@@ -82,7 +82,7 @@ def build_history_stack(history_frames: list[np.ndarray], image_history_interval
     return np.stack([past, current], axis=0)
 
 
-def build_tbot_sa1_request(
+def build_wsa_base_request(
     *,
     qpos: np.ndarray,
     image_histories: Mapping[str, list[np.ndarray]],

@@ -34,8 +34,8 @@ from lerobot.policies.InternVLA_A1_3B.transform_internvla_a1 import (
 from lerobot.policies.qwenaction.transform_qwenaction import (
     QwenActionProcessorTransformFn,
 )
-from lerobot.policies.TBot_SA1.transform_tbot_sa1 import (
-    Qwen3_VLProcessorTransformFn as TBotSA1ProcessorTransformFn,
+from lerobot.policies.WSA_Base.transform_wsa_base import (
+    Qwen3_VLProcessorTransformFn as WSABaseProcessorTransformFn,
 )
 from lerobot.transforms.core import (
     NormalizeTransformFn,
@@ -45,22 +45,22 @@ from lerobot.transforms.core import (
     compose,
 )
 from lerobot.utils.constants import OBS_IMAGES
-from lerobot.policies.TBot_SA1_Wan.core.data.lerobot.utils.normalizer import (
+from lerobot.policies.WSA_Large.core.data.lerobot.utils.normalizer import (
     SingleFieldLinearNormalizer,
     load_dataset_stats_from_json,
 )
-from lerobot.policies.TBot_SA1_Wan.dataset_tbot_sa1_wan import (
-    resolve_tbot_sa1_wan_concat_layout,
-    resolve_tbot_sa1_wan_video_size,
+from lerobot.policies.WSA_Large.dataset_wsa_large import (
+    resolve_wsa_large_concat_layout,
+    resolve_wsa_large_video_size,
 )
-from lerobot.policies.TBot_SA1_Wan.stats_adapter import ensure_tbot_sa1_wan_stats_format
-from lerobot.policies.TBot_SA1_Wan.text_cache import build_tbot_sa1_wan_prompt
+from lerobot.policies.WSA_Large.stats_adapter import ensure_wsa_large_stats_format
+from lerobot.policies.WSA_Large.text_cache import build_wsa_large_prompt
 from lerobot.policies.names import (
-    TBOT_SA1_WAN,
-    TBOT_SA1_WAN_LEGACY_ALIASES,
+    WSA_LARGE,
+    WSA_LARGE_LEGACY_ALIASES,
     canonical_policy_type,
-    is_tbot_sa1,
-    is_tbot_sa1_wan,
+    is_wsa_base,
+    is_wsa_large,
 )
 
 # RoboTwin dependencies
@@ -148,14 +148,14 @@ def resolve_policy_components(config: PreTrainedConfig):
         processor_transform_cls = QwenA1ProcessorTransformFn
     elif config.type == "qwenaction":
         processor_transform_cls = QwenActionProcessorTransformFn
-    elif is_tbot_sa1(config.type):
-        processor_transform_cls = TBotSA1ProcessorTransformFn
-    elif is_tbot_sa1_wan(config.type):
+    elif is_wsa_base(config.type):
+        processor_transform_cls = WSABaseProcessorTransformFn
+    elif is_wsa_large(config.type):
         processor_transform_cls = None
     else:
         raise ValueError(
             "RoboTwin inference currently supports qwena1/internvla_a1_3b/qwenaction/"
-            f"TBot_SA1/TBot_SA1_Wan checkpoints, got {config.type!r}."
+            f"WSA_Base/WSA_Large checkpoints, got {config.type!r}."
         )
     return policy_cls, processor_transform_cls
 
@@ -179,15 +179,15 @@ def apply_runtime_config_overrides(config: PreTrainedConfig, args: "InferenceArg
     if args.da3_code_root is not None and hasattr(config, "da3_code_root"):
         config.da3_code_root = args.da3_code_root
 
-    if is_tbot_sa1_wan(config.type):
-        model_id = resolve_optional_env(args.tbot_sa1_wan_model_id, "WAN_MODEL_ID")
-        tokenizer_model_id = resolve_optional_env(args.tbot_sa1_wan_tokenizer_model_id, "WAN_TOKENIZER_MODEL_ID")
+    if is_wsa_large(config.type):
+        model_id = resolve_optional_env(args.wsa_large_model_id, "WAN_MODEL_ID")
+        tokenizer_model_id = resolve_optional_env(args.wsa_large_tokenizer_model_id, "WAN_TOKENIZER_MODEL_ID")
         action_dit_path = resolve_optional_env(
-            args.tbot_sa1_wan_action_dit_pretrained_path,
+            args.wsa_large_action_dit_pretrained_path,
             "ACTION_DIT_PRETRAINED_PATH",
         )
         future_3d_path = resolve_optional_env(
-            args.tbot_sa1_wan_future_3d_pretrained_path,
+            args.wsa_large_future_3d_pretrained_path,
             "FUTURE_3D_PRETRAINED_PATH",
         )
         if model_id is not None and hasattr(config, "model_id"):
@@ -200,24 +200,24 @@ def apply_runtime_config_overrides(config: PreTrainedConfig, args: "InferenceArg
             config.future_3d_pretrained_path = future_3d_path
         if hasattr(config, "load_text_encoder"):
             config.load_text_encoder = resolve_bool_env(
-                args.tbot_sa1_wan_load_text_encoder,
-                "TBOT_SA1_WAN_LOAD_TEXT_ENCODER",
+                args.wsa_large_load_text_encoder,
+                "WSA_LARGE_LOAD_TEXT_ENCODER",
                 "LOAD_TEXT_ENCODER",
             )
         if hasattr(config, "redirect_common_files"):
             config.redirect_common_files = resolve_bool_env(
-                args.tbot_sa1_wan_redirect_common_files,
-                "TBOT_SA1_WAN_REDIRECT_COMMON_FILES",
+                args.wsa_large_redirect_common_files,
+                "WSA_LARGE_REDIRECT_COMMON_FILES",
             )
         if hasattr(config, "skip_dit_load_from_pretrain"):
             config.skip_dit_load_from_pretrain = resolve_bool_env(
-                args.tbot_sa1_wan_skip_dit_load_from_pretrain,
-                "TBOT_SA1_WAN_SKIP_DIT_LOAD_FROM_PRETRAIN",
+                args.wsa_large_skip_dit_load_from_pretrain,
+                "WSA_LARGE_SKIP_DIT_LOAD_FROM_PRETRAIN",
             )
         if hasattr(config, "dtype"):
             config.dtype = args.dtype
 
-    if (is_tbot_sa1(config.type) or is_tbot_sa1_wan(config.type)) and args.disable_3d_teacher_for_eval and hasattr(config, "lambda_3d"):
+    if (is_wsa_base(config.type) or is_wsa_large(config.type)) and args.disable_3d_teacher_for_eval and hasattr(config, "lambda_3d"):
         # 3D queries remain enabled so the checkpoint architecture still matches,
         # but the frozen DA3 teacher is not instantiated for action-only inference.
         config.lambda_3d = 0.0
@@ -352,7 +352,7 @@ def load_train_config_or_none(ckpt_dir: Path) -> TrainPipelineConfig | None:
         return None
 
 
-def tbot_sa1_wan_shape_meta(config: PreTrainedConfig) -> dict[str, list[dict[str, object]]]:
+def wsa_large_shape_meta(config: PreTrainedConfig) -> dict[str, list[dict[str, object]]]:
     action_dim = int(getattr(config, "action_dim", 14))
     proprio_dim = int(getattr(config, "proprio_dim", action_dim))
     return {
@@ -383,8 +383,8 @@ def _candidate_relative_roots(path_value: str | Path, ckpt_dir: Path) -> list[Pa
     return _dedupe_paths(candidates)
 
 
-def _select_tbot_sa1_wan_stats_payload(stats_payload: dict[str, Any], stats_key: str) -> dict[str, Any]:
-    stats_aliases = (TBOT_SA1_WAN, "tbot_sa1_wan", *TBOT_SA1_WAN_LEGACY_ALIASES)
+def _select_wsa_large_stats_payload(stats_payload: dict[str, Any], stats_key: str) -> dict[str, Any]:
+    stats_aliases = (WSA_LARGE, "wsa_large", *WSA_LARGE_LEGACY_ALIASES)
     if any(stats_alias in stats_payload for stats_alias in stats_aliases):
         return stats_payload
     keyed_payload = stats_payload.get(stats_key)
@@ -393,19 +393,19 @@ def _select_tbot_sa1_wan_stats_payload(stats_payload: dict[str, Any], stats_key:
     return stats_payload
 
 
-def _iter_tbot_sa1_wan_stats_candidates(
+def _iter_wsa_large_stats_candidates(
     args: "InferenceArgs",
     ckpt_dir: Path,
     train_config: TrainPipelineConfig | None,
 ) -> Iterable[tuple[Path, str, bool]]:
-    explicit_stats_path = resolve_optional_env(args.tbot_sa1_wan_stats_path, "TBOT_SA1_WAN_STATS_PATH")
+    explicit_stats_path = resolve_optional_env(args.wsa_large_stats_path, "WSA_LARGE_STATS_PATH")
     if explicit_stats_path is not None:
         explicit_candidates = _candidate_relative_roots(explicit_stats_path, ckpt_dir)
         for explicit_candidate in explicit_candidates:
             if explicit_candidate.is_file():
-                yield explicit_candidate, "explicit TBot_SA1_Wan stats path", True
+                yield explicit_candidate, "explicit WSA_Large stats path", True
                 return
-        yield explicit_candidates[0], "explicit TBot_SA1_Wan stats path", True
+        yield explicit_candidates[0], "explicit WSA_Large stats path", True
         return
 
     checkpoint_stats_path = ckpt_dir / "stats.json"
@@ -436,7 +436,7 @@ def _iter_tbot_sa1_wan_stats_candidates(
                 yield candidate_file, "external per-embodiment stats", False
 
 
-def load_tbot_sa1_wan_runtime_stats(
+def load_wsa_large_runtime_stats(
     args: "InferenceArgs",
     config: PreTrainedConfig,
     ckpt_dir: Path,
@@ -444,9 +444,9 @@ def load_tbot_sa1_wan_runtime_stats(
     *,
     require_state: bool,
 ) -> tuple[dict[str, Any] | None, Path | None]:
-    shape_meta = tbot_sa1_wan_shape_meta(config)
+    shape_meta = wsa_large_shape_meta(config)
     errors: list[str] = []
-    for stats_path, source, explicit in _iter_tbot_sa1_wan_stats_candidates(args, ckpt_dir, train_config):
+    for stats_path, source, explicit in _iter_wsa_large_stats_candidates(args, ckpt_dir, train_config):
         if not stats_path.is_file():
             message = f"{source} not found: {stats_path}"
             if explicit:
@@ -455,27 +455,27 @@ def load_tbot_sa1_wan_runtime_stats(
             continue
         try:
             raw_payload = load_dataset_stats_from_json(str(stats_path))
-            selected_payload = _select_tbot_sa1_wan_stats_payload(raw_payload, args.stats_key)
-            converted_payload = ensure_tbot_sa1_wan_stats_format(
+            selected_payload = _select_wsa_large_stats_payload(raw_payload, args.stats_key)
+            converted_payload = ensure_wsa_large_stats_format(
                 selected_payload,
                 shape_meta=shape_meta,
                 require_state=require_state,
             )
         except Exception as exc:
-            message = f"{source} at {stats_path} is not usable for TBot_SA1_Wan stats: {exc}"
+            message = f"{source} at {stats_path} is not usable for WSA_Large stats: {exc}"
             if explicit:
                 raise ValueError(message) from exc
             errors.append(message)
             continue
-        logging.info("Loaded TBot_SA1_Wan runtime stats from %s (%s).", stats_path, source)
+        logging.info("Loaded WSA_Large runtime stats from %s (%s).", stats_path, source)
         return converted_payload, stats_path
 
     if errors:
-        logging.warning("Could not load TBot_SA1_Wan runtime stats. Last error: %s", errors[-1])
+        logging.warning("Could not load WSA_Large runtime stats. Last error: %s", errors[-1])
     return None, None
 
 
-def maybe_load_tbot_sa1_wan_action_postprocess(
+def maybe_load_wsa_large_action_postprocess(
     policy,
     args: "InferenceArgs",
     config: PreTrainedConfig,
@@ -484,7 +484,7 @@ def maybe_load_tbot_sa1_wan_action_postprocess(
 ) -> None:
     if getattr(policy, "_action_denorm_specs", None):
         return
-    stats_payload, stats_path = load_tbot_sa1_wan_runtime_stats(
+    stats_payload, stats_path = load_wsa_large_runtime_stats(
         args,
         config,
         ckpt_dir,
@@ -493,8 +493,8 @@ def maybe_load_tbot_sa1_wan_action_postprocess(
     )
     if stats_payload is None:
         logging.warning(
-            "TBot_SA1_Wan action denormalization stats were not loaded. "
-            "For pretraining checkpoints, set TBOT_SA1_WAN_STATS_PATH or keep train_config.dataset.external_stats_root "
+            "WSA_Large action denormalization stats were not loaded. "
+            "For pretraining checkpoints, set WSA_LARGE_STATS_PATH or keep train_config.dataset.external_stats_root "
             "available so RoboTwin can resolve %s/%s/stats.json.",
             args.stats_key,
             args.action_mode,
@@ -505,14 +505,14 @@ def maybe_load_tbot_sa1_wan_action_postprocess(
         policy._action_stats_source = str(stats_path)
 
 
-def resize_tbot_sa1_wan_video_view(video: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
+def resize_wsa_large_video_view(video: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
     try:
         return F.interpolate(video, size=size, mode="bilinear", align_corners=False, antialias=True)
     except TypeError:
         return F.interpolate(video, size=size, mode="bilinear", align_corners=False)
 
 
-def concat_tbot_sa1_wan_camera_views(
+def concat_wsa_large_camera_views(
     video: torch.Tensor,
     target_video_size: tuple[int, int],
     concat_layout: str,
@@ -522,7 +522,7 @@ def concat_tbot_sa1_wan_camera_views(
     if concat_layout == "single":
         if num_cameras != 1:
             raise ValueError(f"`single` camera layout requires 1 camera, got {num_cameras}.")
-        return resize_tbot_sa1_wan_video_view(video[0], target_video_size)
+        return resize_wsa_large_video_view(video[0], target_video_size)
 
     if concat_layout == "horizontal":
         if target_w % num_cameras != 0:
@@ -532,7 +532,7 @@ def concat_tbot_sa1_wan_camera_views(
             )
         tile_w = target_w // num_cameras
         views = [
-            resize_tbot_sa1_wan_video_view(video[view_idx], (target_h, tile_w))
+            resize_wsa_large_video_view(video[view_idx], (target_h, tile_w))
             for view_idx in range(num_cameras)
         ]
         return torch.cat(views, dim=-1)
@@ -545,7 +545,7 @@ def concat_tbot_sa1_wan_camera_views(
             )
         tile_h = target_h // num_cameras
         views = [
-            resize_tbot_sa1_wan_video_view(video[view_idx], (tile_h, target_w))
+            resize_wsa_large_video_view(video[view_idx], (tile_h, target_w))
             for view_idx in range(num_cameras)
         ]
         return torch.cat(views, dim=-2)
@@ -561,19 +561,19 @@ def concat_tbot_sa1_wan_camera_views(
         bottom_h = target_h // 3
         top_h = target_h - bottom_h
         half_w = target_w // 2
-        cam_top = resize_tbot_sa1_wan_video_view(video[0], (top_h, target_w))
-        cam_left = resize_tbot_sa1_wan_video_view(video[1], (bottom_h, half_w))
-        cam_right = resize_tbot_sa1_wan_video_view(video[2], (bottom_h, half_w))
+        cam_top = resize_wsa_large_video_view(video[0], (top_h, target_w))
+        cam_left = resize_wsa_large_video_view(video[1], (bottom_h, half_w))
+        cam_right = resize_wsa_large_video_view(video[2], (bottom_h, half_w))
         bottom = torch.cat([cam_left, cam_right], dim=-1)
         return torch.cat([cam_top, bottom], dim=-2)
 
     raise ValueError(
-        f"Invalid TBot_SA1_Wan concat layout: {concat_layout}. "
+        f"Invalid WSA_Large concat layout: {concat_layout}. "
         "Expected one of: single, horizontal, vertical, robotwin."
     )
 
 
-class TBotSA1WanRuntimeAdapter:
+class WSALargeRuntimeAdapter:
     def __init__(
         self,
         args: "InferenceArgs",
@@ -599,7 +599,7 @@ class TBotSA1WanRuntimeAdapter:
         return tensor.to(torch.float32)
 
     def _build_state_normalizer(self) -> SingleFieldLinearNormalizer | None:
-        stats_payload, stats_file = load_tbot_sa1_wan_runtime_stats(
+        stats_payload, stats_file = load_wsa_large_runtime_stats(
             self.args,
             self.config,
             self.ckpt_dir,
@@ -607,21 +607,21 @@ class TBotSA1WanRuntimeAdapter:
             require_state=True,
         )
         if stats_payload is None:
-            logging.warning("TBot_SA1_Wan state stats were not loaded; proprio will be passed without normalization.")
+            logging.warning("WSA_Large state stats were not loaded; proprio will be passed without normalization.")
             return None
 
         state_stats = stats_payload.get("state", {})
         if not state_stats:
-            logging.warning("TBot_SA1_Wan stats contain no state section; proprio will be passed raw.")
+            logging.warning("WSA_Large stats contain no state section; proprio will be passed raw.")
             return None
 
-        state_key = self.args.tbot_sa1_wan_state_key
+        state_key = self.args.wsa_large_state_key
         if state_key not in state_stats:
             if len(state_stats) == 1:
                 state_key = next(iter(state_stats))
             else:
                 raise KeyError(
-                    f"TBot_SA1_Wan state stats key {state_key!r} not found. Available keys: {list(state_stats.keys())}"
+                    f"WSA_Large state stats key {state_key!r} not found. Available keys: {list(state_stats.keys())}"
                 )
         selected_stats = {
             key.removeprefix("global_"): value
@@ -658,25 +658,25 @@ class TBotSA1WanRuntimeAdapter:
             self._image_to_chw_float(right_wrist_image),
         ]
         video = torch.stack(camera_images, dim=0).unsqueeze(1)
-        target_video_size = resolve_tbot_sa1_wan_video_size(
+        target_video_size = resolve_wsa_large_video_size(
             len(camera_images),
-            (self.args.tbot_sa1_wan_video_height, self.args.tbot_sa1_wan_video_width),
+            (self.args.wsa_large_video_height, self.args.wsa_large_video_width),
             resolve_bool_env(
-                self.args.tbot_sa1_wan_standardize_video_size_by_cameras,
-                "TBOT_SA1_WAN_STANDARDIZE_VIDEO_SIZE_BY_CAMERAS",
+                self.args.wsa_large_standardize_video_size_by_cameras,
+                "WSA_LARGE_STANDARDIZE_VIDEO_SIZE_BY_CAMERAS",
                 "STANDARDIZE_VIDEO_SIZE_BY_CAMERAS",
             ),
         )
-        concat_layout = resolve_tbot_sa1_wan_concat_layout(
+        concat_layout = resolve_wsa_large_concat_layout(
             len(camera_images),
-            self.args.tbot_sa1_wan_concat_multi_camera,
+            self.args.wsa_large_concat_multi_camera,
         )
-        input_image = concat_tbot_sa1_wan_camera_views(video, target_video_size, concat_layout)
+        input_image = concat_wsa_large_camera_views(video, target_video_size, concat_layout)
         input_image = (input_image - 0.5) / 0.5
         return {
             "input_image": input_image,
             "proprio": self._normalize_proprio(state),
-            "prompt": [build_tbot_sa1_wan_prompt(task)],
+            "prompt": [build_wsa_large_prompt(task)],
         }
 
 
@@ -688,14 +688,14 @@ def build_policy_and_transforms(args: "InferenceArgs", dtype: torch.dtype):
     config.device = "cuda" if torch.cuda.is_available() else "cpu"
 
     policy_cls, processor_transform_cls = resolve_policy_components(config)
-    train_config = load_train_config_or_none(ckpt_dir) if is_tbot_sa1_wan(config.type) else None
+    train_config = load_train_config_or_none(ckpt_dir) if is_wsa_large(config.type) else None
     policy_config = config
-    if is_tbot_sa1_wan(config.type) and hasattr(config, "action_stats_path"):
+    if is_wsa_large(config.type) and hasattr(config, "action_stats_path"):
         # Keep checkpoint stats portable across machines by not letting the saved config override them.
         policy_config = copy.deepcopy(config)
         policy_config.action_stats_path = None
     policy = policy_cls.from_pretrained(config=policy_config, pretrained_name_or_path=ckpt_dir)
-    if is_tbot_sa1(config.type) and hasattr(policy, "model"):
+    if is_wsa_base(config.type) and hasattr(policy, "model"):
         setattr(
             policy.model,
             "omit_visual_tokens_in_causal_inference",
@@ -707,16 +707,16 @@ def build_policy_and_transforms(args: "InferenceArgs", dtype: torch.dtype):
     policy.to(device=config.device, dtype=dtype).eval()
 
     logging.info(f"Resolved policy type: {config.type}")
-    if (is_tbot_sa1(config.type) or is_tbot_sa1_wan(config.type)) and args.disable_3d_teacher_for_eval:
+    if (is_wsa_base(config.type) or is_wsa_large(config.type)) and args.disable_3d_teacher_for_eval:
         logging.info("%s eval mode: disabled DA3 teacher instantiation.", config.type)
 
-    if is_tbot_sa1_wan(config.type):
+    if is_wsa_large(config.type):
         dataset_config = None if train_config is None else getattr(train_config, "dataset", None)
         if dataset_config is not None:
             dataset_name = getattr(dataset_config, "type", dataset_config.__class__.__name__)
-            logging.info("Loaded TBot_SA1_Wan train_config dataset: %s", dataset_name)
-        maybe_load_tbot_sa1_wan_action_postprocess(policy, args, config, ckpt_dir, train_config)
-        return policy, TBotSA1WanRuntimeAdapter(args, config, ckpt_dir, train_config), None, config
+            logging.info("Loaded WSA_Large train_config dataset: %s", dataset_name)
+        maybe_load_wsa_large_action_postprocess(policy, args, config, ckpt_dir, train_config)
+        return policy, WSALargeRuntimeAdapter(args, config, ckpt_dir, train_config), None, config
 
     stats = load_json(ckpt_dir / "stats.json")[args.stats_key]
     stat_keys = ["min", "max", "mean", "std"]
@@ -766,7 +766,7 @@ class InferenceArgs:
     task_config: str = "demo_clean"
     instruction_type: str = "unseen"
     seed: int = 0
-    ckpt_path: Union[str, Path] = "zaleni/TBot-SA1-RoboTwin"
+    ckpt_path: Union[str, Path] = "zaleni/WSA-RoboTwin"
     stats_key: str = "aloha"
     resize_size: int = 224
     image_history_interval: int = 15
@@ -792,19 +792,19 @@ class InferenceArgs:
     da3_code_root: str | None = None
     disable_3d_teacher_for_eval: bool = False
     omit_visual_tokens_in_causal_inference: bool = True
-    tbot_sa1_wan_model_id: str | None = None
-    tbot_sa1_wan_tokenizer_model_id: str | None = None
-    tbot_sa1_wan_action_dit_pretrained_path: str | None = None
-    tbot_sa1_wan_future_3d_pretrained_path: str | None = None
-    tbot_sa1_wan_load_text_encoder: bool = True
-    tbot_sa1_wan_redirect_common_files: bool = True
-    tbot_sa1_wan_skip_dit_load_from_pretrain: bool = True
-    tbot_sa1_wan_stats_path: str | None = None
-    tbot_sa1_wan_state_key: str = "default"
-    tbot_sa1_wan_video_height: int = 384
-    tbot_sa1_wan_video_width: int = 320
-    tbot_sa1_wan_standardize_video_size_by_cameras: bool = True
-    tbot_sa1_wan_concat_multi_camera: str = "robotwin"
+    wsa_large_model_id: str | None = None
+    wsa_large_tokenizer_model_id: str | None = None
+    wsa_large_action_dit_pretrained_path: str | None = None
+    wsa_large_future_3d_pretrained_path: str | None = None
+    wsa_large_load_text_encoder: bool = True
+    wsa_large_redirect_common_files: bool = True
+    wsa_large_skip_dit_load_from_pretrain: bool = True
+    wsa_large_stats_path: str | None = None
+    wsa_large_state_key: str = "default"
+    wsa_large_video_height: int = 384
+    wsa_large_video_width: int = 320
+    wsa_large_standardize_video_size_by_cameras: bool = True
+    wsa_large_concat_multi_camera: str = "robotwin"
 
 
 def write_task_summary(args: InferenceArgs, task_name: str, success_count: int, test_num: int) -> None:
@@ -854,9 +854,9 @@ def infer_once(args: InferenceArgs):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = resolve_dtype(args.dtype, device)
     policy, input_transforms, unnormalize_fn, policy_config = build_policy_and_transforms(args, dtype)
-    policy_is_tbot_sa1_wan = is_tbot_sa1_wan(policy_config.type)
+    policy_is_wsa_large = is_wsa_large(policy_config.type)
     binarize_gripper = resolve_bool_env(args.binarize_gripper, "BINARIZE_GRIPPER")
-    skip_get_obs_within_replan = policy_is_tbot_sa1_wan and resolve_bool_env(
+    skip_get_obs_within_replan = policy_is_wsa_large and resolve_bool_env(
         args.skip_get_obs_within_replan,
         "SKIP_GET_OBS_WITHIN_REPLAN",
     )
@@ -935,9 +935,9 @@ def infer_once(args: InferenceArgs):
                 # Record frames only when RGB is rendered.
                 replay_images.append(img.copy())
 
-            if not policy_is_tbot_sa1_wan and len(action_plan) <= image_history_interval:
+            if not policy_is_wsa_large and len(action_plan) <= image_history_interval:
                 if observation is None or img is None:
-                    raise RuntimeError("Non-TBot_SA1_Wan policies require an observation at every eval step.")
+                    raise RuntimeError("Non-WSA_Large policies require an observation at every eval step.")
                 left_wrist_img = observation["observation"]["left_camera"]["rgb"]
                 right_wrist_img = observation["observation"]["right_camera"]["rgb"]
 
@@ -961,12 +961,12 @@ def infer_once(args: InferenceArgs):
 
             if not action_plan:
                 if observation is None:
-                    raise RuntimeError("Observation is required when planning a new TBot_SA1_Wan action chunk.")
+                    raise RuntimeError("Observation is required when planning a new WSA_Large action chunk.")
                 init_action = torch.as_tensor(observation["joint_action"]["vector"][None]).contiguous().cuda()
                 state = torch.from_numpy(observation["joint_action"]["vector"]).float().cuda()
                 task = TASK_ENV.get_instruction()
 
-                if policy_is_tbot_sa1_wan:
+                if policy_is_wsa_large:
                     left_wrist_img = observation["observation"]["left_camera"]["rgb"]
                     right_wrist_img = observation["observation"]["right_camera"]["rgb"]
                     inputs = input_transforms.build_inputs(

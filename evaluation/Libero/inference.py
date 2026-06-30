@@ -201,9 +201,9 @@ def apply_runtime_config_overrides(config, args: EvalArgs) -> None:
     if args.da3_code_root is not None and hasattr(config, "da3_code_root"):
         config.da3_code_root = args.da3_code_root
 
-    from lerobot.policies.names import is_tbot_sa1
+    from lerobot.policies.names import is_wsa_base
 
-    if is_tbot_sa1(config.type) and args.disable_3d_teacher_for_eval and hasattr(config, "lambda_3d"):
+    if is_wsa_base(config.type) and args.disable_3d_teacher_for_eval and hasattr(config, "lambda_3d"):
         config.lambda_3d = 0.0
 
 
@@ -277,11 +277,11 @@ def action_to_env(action: np.ndarray, gripper_mode: str, gripper_threshold: floa
 def build_policy_and_transforms(args: EvalArgs):
     from lerobot.configs.policies import PreTrainedConfig
     from lerobot.datasets.utils import load_json
-    from lerobot.policies.TBot_SA1.transform_tbot_sa1 import (
-        Qwen3_VLProcessorTransformFn as TBotSA1ProcessorTransformFn,
+    from lerobot.policies.WSA_Base.transform_wsa_base import (
+        Qwen3_VLProcessorTransformFn as WSABaseProcessorTransformFn,
     )
     from lerobot.policies.factory import get_policy_class
-    from lerobot.policies.names import is_tbot_sa1
+    from lerobot.policies.names import is_wsa_base
     from lerobot.transforms.core import (
         NormalizeTransformFn,
         ResizeImagesWithPadFn,
@@ -292,8 +292,8 @@ def build_policy_and_transforms(args: EvalArgs):
     config = PreTrainedConfig.from_pretrained(ckpt_dir)
     apply_runtime_config_overrides(config, args)
 
-    if not is_tbot_sa1(config.type):
-        raise ValueError(f"LIBERO evaluation currently supports TBot_SA1 checkpoints only, got {config.type!r}.")
+    if not is_wsa_base(config.type):
+        raise ValueError(f"LIBERO evaluation currently supports WSA_Base checkpoints only, got {config.type!r}.")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     config.device = device
@@ -326,9 +326,9 @@ def build_policy_and_transforms(args: EvalArgs):
         or getattr(config, "qwen3_vl_pretrained_path", None)
     )
     if processor_path is None:
-        raise ValueError("Failed to resolve a Qwen3-VL processor path for TBotSA1 LIBERO evaluation.")
+        raise ValueError("Failed to resolve a Qwen3-VL processor path for WSABase LIBERO evaluation.")
 
-    processor_fn = TBotSA1ProcessorTransformFn(
+    processor_fn = WSABaseProcessorTransformFn(
         pretrained_model_name_or_path=processor_path,
         max_length=int(getattr(config, "tokenizer_max_length", 48)),
     )

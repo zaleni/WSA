@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Convert raw EgoDex MP4+HDF5 episodes into a LeRobot v3 dataset for TBotSA1.
+"""Convert raw EgoDex MP4+HDF5 episodes into a LeRobot v3 dataset for WSABase.
 
-This converter is tailored to the current TBotSA1 training design:
+This converter is tailored to the current WSABase training design:
 
 - keep the single egocentric RGB stream as `observation.image`
 - keep the language task as `task`
@@ -632,7 +632,7 @@ def convert_fast(args: argparse.Namespace, pairs: list[tuple[Path, Path, str]], 
     )
     logging.info("Video materialization summary: %s", dict(video_mode_counts))
     logging.info(
-        "Stats path for tbot_sa1_pretrain.sh should later be written to outputs/norm_stats/%s/delta/stats.json",
+        "Stats path for wsa_base_pretrain.sh should later be written to outputs/norm_stats/%s/delta/stats.json",
         args.robot_type,
     )
 

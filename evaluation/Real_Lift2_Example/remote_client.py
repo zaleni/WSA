@@ -7,15 +7,15 @@ from typing import Any
 import numpy as np
 
 try:
-    from .request_builder import build_tbot_sa1_request, prepare_history_frame
+    from .request_builder import build_wsa_base_request, prepare_history_frame
     from .websocket_client import WebsocketClientPolicy
 except ImportError:
-    from request_builder import build_tbot_sa1_request, prepare_history_frame
+    from request_builder import build_wsa_base_request, prepare_history_frame
     from websocket_client import WebsocketClientPolicy
 
 
 class RealLift2RemoteClient:
-    """Small helper for real-robot loops that query the TBotSA1 websocket server."""
+    """Small helper for real-robot loops that query the WSABase websocket server."""
 
     def __init__(
         self,
@@ -80,7 +80,7 @@ class RealLift2RemoteClient:
         if update_history:
             self._append_images_to_history(images)
 
-        request = build_tbot_sa1_request(
+        request = build_wsa_base_request(
             qpos=qpos,
             image_histories=self._image_histories,
             prompt=prompt or self._prompt,

@@ -1,6 +1,6 @@
 # Real Piper Example
 
-This example shows a single-arm Piper setup for TBot-SA1. The GPU server loads
+This example shows a single-arm Piper setup for WSA. The GPU server loads
 the checkpoint and the robot-side client streams observations over a websocket
 connection.
 
@@ -8,7 +8,7 @@ connection.
 
 | Server | Robot client |
 | --- | --- |
-| `01_serve_tbot_sa1_real_piper_sync.sh` | `02_infer_tbot_sa1_real_piper_sync.sh` |
+| `01_serve_wsa_base_real_piper_sync.sh` | `02_infer_wsa_base_real_piper_sync.sh` |
 
 ## Shared Runtime
 
@@ -25,20 +25,20 @@ connection.
 - `ACTION_MODE`: keep this aligned with the checkpoint.
 - `INFER_HORIZON`: server-side chunk length.
 - `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH`,
-  `COSMOS_TOKENIZER_PATH_OR_NAME`: TBot-SA1 assets.
+  `COSMOS_TOKENIZER_PATH_OR_NAME`: WSA assets.
 
 ## Quick Start
 
 ```bash
-CHECKPOINT_DIR=/path/to/TBot-SA1/real_piper/checkpoints/last/pretrained_model \
+CHECKPOINT_DIR=/path/to/WSA/real_piper/checkpoints/last/pretrained_model \
 STATS_KEY=real_piper \
 ACTION_MODE=abs \
 INFER_HORIZON=50 \
-bash evaluation/Real_Piper_Example/01_serve_tbot_sa1_real_piper_sync.sh
+bash evaluation/Real_Piper_Example/01_serve_wsa_base_real_piper_sync.sh
 
 WS_HOST=<server-ip> \
 WS_PORT=8000 \
-bash evaluation/Real_Piper_Example/02_infer_tbot_sa1_real_piper_sync.sh
+bash evaluation/Real_Piper_Example/02_infer_wsa_base_real_piper_sync.sh
 ```
 
 ## Notes

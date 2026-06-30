@@ -26,7 +26,7 @@ for candidate in [REAL_LIFT2_DIR, REPO_ROOT, REPO_ROOT / "src"]:
     if candidate_str not in sys.path:
         sys.path.insert(0, candidate_str)
 
-from request_builder import build_tbot_sa1_request, prepare_history_frame
+from request_builder import build_wsa_base_request, prepare_history_frame
 from websocket_client import WebsocketClientPolicy
 
 
@@ -263,7 +263,7 @@ class PiperRequestBuilder:
 
     def build(self, obs: dict[str, Any], timestep: int) -> dict[str, Any]:
         self.append_images(obs["images"])
-        request = build_tbot_sa1_request(
+        request = build_wsa_base_request(
             qpos=coerce_state_7d(obs["qpos"], log_tag=self.args.log_tag),
             image_histories=self.image_histories,
             prompt=self.args.task_prompt,
@@ -291,7 +291,7 @@ class PiperRosOperator:
         self.joint_state: JointState | None = None
         self.joint_state_time: float | None = None
 
-        rospy.init_node("tbot_sa1_piper_sync_client", anonymous=True)
+        rospy.init_node("wsa_base_piper_sync_client", anonymous=True)
         rospy.Subscriber(args.front_cam_topic, Image, self.front_cam_callback, queue_size=10, tcp_nodelay=True)
         rospy.Subscriber(args.wrist_cam_topic, Image, self.wrist_cam_callback, queue_size=10, tcp_nodelay=True)
         rospy.Subscriber(args.joint_state_topic, JointState, self.joint_callback, queue_size=10, tcp_nodelay=True)
@@ -383,7 +383,7 @@ class PiperRosOperator:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Sync TBotSA1 real_piper ROS1 deployment client.")
+    parser = argparse.ArgumentParser(description="Sync WSABase real_piper ROS1 deployment client.")
     parser.add_argument("--ws_host", default="10.60.43.33")
     parser.add_argument("--ws_port", type=int, default=8000)
     parser.add_argument("--task_prompt", default="Sort desktop objects and place them in designated locations.")
@@ -425,12 +425,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--init_position_threshold", type=float, default=500.0)
     parser.add_argument("--manual_reset_resume_hold_steps", type=int, default=5)
     parser.add_argument("--manual_reset_reminder_interval", type=float, default=1.5)
-    parser.add_argument("--log_tag", default="TBotSA1-Piper")
+    parser.add_argument("--log_tag", default="WSABase-Piper")
     return parser.parse_args()
 
 
 def signal_handler(_sig: int, _frame: Any) -> None:
-    print("\n[TBotSA1-Piper] Caught Ctrl+C, shutting down.")
+    print("\n[WSABase-Piper] Caught Ctrl+C, shutting down.")
     rospy.signal_shutdown("User interrupt")
     sys.exit(0)
 

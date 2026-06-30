@@ -34,29 +34,29 @@ from lerobot.datasets.utils import load_json
 from lerobot.policies.InternVLA_A1_3B.transform_internvla_a1 import (
     Qwen3_VLProcessorTransformFn as QwenA1ProcessorTransformFn,
 )
-from lerobot.policies.TBot_SA1.modeling_tbot_sa1_rtc import TBotSA1RTCPolicy
-from lerobot.policies.TBot_SA1.transform_tbot_sa1 import (
-    Qwen3_VLProcessorTransformFn as TBotSA1ProcessorTransformFn,
+from lerobot.policies.WSA_Base.modeling_wsa_base_rtc import WSABaseRTCPolicy
+from lerobot.policies.WSA_Base.transform_wsa_base import (
+    Qwen3_VLProcessorTransformFn as WSABaseProcessorTransformFn,
 )
 from lerobot.policies.factory import get_policy_class
-from lerobot.policies.TBot_SA1_Wan.core.data.lerobot.utils.normalizer import (
+from lerobot.policies.WSA_Large.core.data.lerobot.utils.normalizer import (
     SingleFieldLinearNormalizer,
     load_dataset_stats_from_json,
 )
-from lerobot.policies.TBot_SA1_Wan.dataset_tbot_sa1_wan import (
-    resolve_tbot_sa1_wan_concat_layout,
-    resolve_tbot_sa1_wan_video_size,
+from lerobot.policies.WSA_Large.dataset_wsa_large import (
+    resolve_wsa_large_concat_layout,
+    resolve_wsa_large_video_size,
 )
-from lerobot.policies.TBot_SA1_Wan.stats_adapter import ensure_tbot_sa1_wan_stats_format
-from lerobot.policies.TBot_SA1_Wan.text_cache import build_tbot_sa1_wan_prompt
-from lerobot.policies.TBot_SA1_Wan.text_cache import build_text_embedding_cache_path
+from lerobot.policies.WSA_Large.stats_adapter import ensure_wsa_large_stats_format
+from lerobot.policies.WSA_Large.text_cache import build_wsa_large_prompt
+from lerobot.policies.WSA_Large.text_cache import build_text_embedding_cache_path
 from lerobot.policies.names import (
-    TBOT_SA1_WAN,
-    TBOT_SA1_ALIASES,
-    TBOT_SA1_WAN_ALIASES,
-    TBOT_SA1_WAN_LEGACY_ALIASES,
-    is_tbot_sa1,
-    is_tbot_sa1_wan,
+    WSA_LARGE,
+    WSA_BASE_ALIASES,
+    WSA_LARGE_ALIASES,
+    WSA_LARGE_LEGACY_ALIASES,
+    is_wsa_base,
+    is_wsa_large,
 )
 from lerobot.policies.rtc import RTCConfig, RTCProcessor
 from lerobot.transforms.constants import get_mask_mapping
@@ -75,7 +75,7 @@ CAMERA_ALIASES = {
     f"{OBS_IMAGES}.image2": ("cam_right_wrist", "right_wrist", "right", "image2"),
 }
 
-SUPPORTED_POLICY_TYPES = {*TBOT_SA1_ALIASES, *TBOT_SA1_WAN_ALIASES, "qwena1", "internvla_a1_3b"}
+SUPPORTED_POLICY_TYPES = {*WSA_BASE_ALIASES, *WSA_LARGE_ALIASES, "qwena1", "internvla_a1_3b"}
 
 
 @dataclass
@@ -107,20 +107,20 @@ class ServeArgs:
     rtc_prefix_attention_schedule: str = "linear"
     disable_3d_teacher_for_eval: bool = True
     omit_visual_tokens_in_causal_inference: bool = True
-    tbot_sa1_wan_model_id: str | None = None
-    tbot_sa1_wan_tokenizer_model_id: str | None = None
-    tbot_sa1_wan_action_dit_pretrained_path: str | None = None
-    tbot_sa1_wan_future_3d_pretrained_path: str | None = None
-    tbot_sa1_wan_load_text_encoder: bool = True
-    tbot_sa1_wan_redirect_common_files: bool = True
-    tbot_sa1_wan_skip_dit_load_from_pretrain: bool = True
-    tbot_sa1_wan_state_key: str = "default"
-    tbot_sa1_wan_video_height: int = 384
-    tbot_sa1_wan_video_width: int = 320
-    tbot_sa1_wan_standardize_video_size_by_cameras: bool = True
-    tbot_sa1_wan_concat_multi_camera: str = "robotwin"
-    tbot_sa1_wan_text_embedding_cache_dir: str | None = None
-    tbot_sa1_wan_context_len: int | None = None
+    wsa_large_model_id: str | None = None
+    wsa_large_tokenizer_model_id: str | None = None
+    wsa_large_action_dit_pretrained_path: str | None = None
+    wsa_large_future_3d_pretrained_path: str | None = None
+    wsa_large_load_text_encoder: bool = True
+    wsa_large_redirect_common_files: bool = True
+    wsa_large_skip_dit_load_from_pretrain: bool = True
+    wsa_large_state_key: str = "default"
+    wsa_large_video_height: int = 384
+    wsa_large_video_width: int = 320
+    wsa_large_standardize_video_size_by_cameras: bool = True
+    wsa_large_concat_multi_camera: str = "robotwin"
+    wsa_large_text_embedding_cache_dir: str | None = None
+    wsa_large_context_len: int | None = None
 
 
 def _env_fallback(value: str | None, env_name: str) -> str | None:
@@ -154,7 +154,7 @@ def add_bool_arg(
 
 
 def parse_args() -> ServeArgs:
-    parser = argparse.ArgumentParser(description="Serve a fine-tuned TBotSA1 policy for the Real Lift2 example.")
+    parser = argparse.ArgumentParser(description="Serve a fine-tuned WSABase policy for the Real Lift2 example.")
     parser.add_argument("--ckpt_path", required=True, help="Checkpoint step dir or pretrained_model dir.")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8000)
@@ -186,7 +186,7 @@ def parse_args() -> ServeArgs:
         "--rtc-enabled",
         dest="rtc_enabled",
         default=False,
-        help_text="Enable runtime-only Real-Time Chunking guidance for TBotSA1 inference.",
+        help_text="Enable runtime-only Real-Time Chunking guidance for WSABase inference.",
     )
     parser.add_argument("--rtc_execution_horizon", type=int, default=10)
     parser.add_argument("--rtc_max_guidance_weight", type=float, default=10.0)
@@ -208,47 +208,47 @@ def parse_args() -> ServeArgs:
         "--omit-visual-tokens-in-causal-inference",
         dest="omit_visual_tokens_in_causal_inference",
         default=True,
-        help_text="Skip causal visual-generation middle tokens for action-only TBotSA1 inference.",
+        help_text="Skip causal visual-generation middle tokens for action-only WSABase inference.",
     )
-    parser.add_argument("--tbot_sa1_wan_model_id", default=None)
-    parser.add_argument("--tbot_sa1_wan_tokenizer_model_id", default=None)
-    parser.add_argument("--tbot_sa1_wan_action_dit_pretrained_path", default=None)
-    parser.add_argument("--tbot_sa1_wan_future_3d_pretrained_path", default=None)
+    parser.add_argument("--wsa_large_model_id", default=None)
+    parser.add_argument("--wsa_large_tokenizer_model_id", default=None)
+    parser.add_argument("--wsa_large_action_dit_pretrained_path", default=None)
+    parser.add_argument("--wsa_large_future_3d_pretrained_path", default=None)
     add_bool_arg(
         parser,
-        "--tbot_sa1_wan_load_text_encoder",
-        dest="tbot_sa1_wan_load_text_encoder",
+        "--wsa_large_load_text_encoder",
+        dest="wsa_large_load_text_encoder",
         default=True,
-        help_text="Load TBot_SA1_Wan text encoder so sync requests can send plain text prompts.",
+        help_text="Load WSA_Large text encoder so sync requests can send plain text prompts.",
     )
     add_bool_arg(
         parser,
-        "--tbot_sa1_wan_redirect_common_files",
-        dest="tbot_sa1_wan_redirect_common_files",
-        default=True,
-    )
-    add_bool_arg(
-        parser,
-        "--tbot_sa1_wan_skip_dit_load_from_pretrain",
-        dest="tbot_sa1_wan_skip_dit_load_from_pretrain",
+        "--wsa_large_redirect_common_files",
+        dest="wsa_large_redirect_common_files",
         default=True,
     )
-    parser.add_argument("--tbot_sa1_wan_state_key", default="default")
-    parser.add_argument("--tbot_sa1_wan_video_height", type=int, default=384)
-    parser.add_argument("--tbot_sa1_wan_video_width", type=int, default=320)
     add_bool_arg(
         parser,
-        "--tbot_sa1_wan_standardize_video_size_by_cameras",
-        dest="tbot_sa1_wan_standardize_video_size_by_cameras",
+        "--wsa_large_skip_dit_load_from_pretrain",
+        dest="wsa_large_skip_dit_load_from_pretrain",
+        default=True,
+    )
+    parser.add_argument("--wsa_large_state_key", default="default")
+    parser.add_argument("--wsa_large_video_height", type=int, default=384)
+    parser.add_argument("--wsa_large_video_width", type=int, default=320)
+    add_bool_arg(
+        parser,
+        "--wsa_large_standardize_video_size_by_cameras",
+        dest="wsa_large_standardize_video_size_by_cameras",
         default=True,
     )
     parser.add_argument(
-        "--tbot_sa1_wan_concat_multi_camera",
+        "--wsa_large_concat_multi_camera",
         choices=["single", "horizontal", "vertical", "robotwin"],
         default="robotwin",
     )
-    parser.add_argument("--tbot_sa1_wan_text_embedding_cache_dir", default=None)
-    parser.add_argument("--tbot_sa1_wan_context_len", type=int, default=None)
+    parser.add_argument("--wsa_large_text_embedding_cache_dir", default=None)
+    parser.add_argument("--wsa_large_context_len", type=int, default=None)
     parsed = ServeArgs(**vars(parser.parse_args()))
     parsed.stats_key = _env_fallback(parsed.stats_key, "STATS_KEY")
     parsed.stats_path = _env_fallback(parsed.stats_path, "STATS_PATH")
@@ -266,42 +266,42 @@ def parse_args() -> ServeArgs:
         parsed.omit_visual_tokens_in_causal_inference,
         "OMIT_VISUAL_TOKENS_IN_CAUSAL_INFERENCE",
     )
-    parsed.tbot_sa1_wan_model_id = _env_fallback(parsed.tbot_sa1_wan_model_id, "WAN_MODEL_ID")
-    parsed.tbot_sa1_wan_tokenizer_model_id = _env_fallback(
-        parsed.tbot_sa1_wan_tokenizer_model_id,
+    parsed.wsa_large_model_id = _env_fallback(parsed.wsa_large_model_id, "WAN_MODEL_ID")
+    parsed.wsa_large_tokenizer_model_id = _env_fallback(
+        parsed.wsa_large_tokenizer_model_id,
         "WAN_TOKENIZER_MODEL_ID",
     )
-    parsed.tbot_sa1_wan_action_dit_pretrained_path = _env_fallback(
-        parsed.tbot_sa1_wan_action_dit_pretrained_path,
+    parsed.wsa_large_action_dit_pretrained_path = _env_fallback(
+        parsed.wsa_large_action_dit_pretrained_path,
         "ACTION_DIT_PRETRAINED_PATH",
     )
-    parsed.tbot_sa1_wan_future_3d_pretrained_path = _env_fallback(
-        parsed.tbot_sa1_wan_future_3d_pretrained_path,
+    parsed.wsa_large_future_3d_pretrained_path = _env_fallback(
+        parsed.wsa_large_future_3d_pretrained_path,
         "FUTURE_3D_PRETRAINED_PATH",
     )
-    parsed.tbot_sa1_wan_load_text_encoder = _bool_env_fallback(
-        parsed.tbot_sa1_wan_load_text_encoder,
-        "TBOT_SA1_WAN_LOAD_TEXT_ENCODER",
+    parsed.wsa_large_load_text_encoder = _bool_env_fallback(
+        parsed.wsa_large_load_text_encoder,
+        "WSA_LARGE_LOAD_TEXT_ENCODER",
     )
-    parsed.tbot_sa1_wan_redirect_common_files = _bool_env_fallback(
-        parsed.tbot_sa1_wan_redirect_common_files,
-        "TBOT_SA1_WAN_REDIRECT_COMMON_FILES",
+    parsed.wsa_large_redirect_common_files = _bool_env_fallback(
+        parsed.wsa_large_redirect_common_files,
+        "WSA_LARGE_REDIRECT_COMMON_FILES",
     )
-    parsed.tbot_sa1_wan_skip_dit_load_from_pretrain = _bool_env_fallback(
-        parsed.tbot_sa1_wan_skip_dit_load_from_pretrain,
-        "TBOT_SA1_WAN_SKIP_DIT_LOAD_FROM_PRETRAIN",
+    parsed.wsa_large_skip_dit_load_from_pretrain = _bool_env_fallback(
+        parsed.wsa_large_skip_dit_load_from_pretrain,
+        "WSA_LARGE_SKIP_DIT_LOAD_FROM_PRETRAIN",
     )
-    parsed.tbot_sa1_wan_text_embedding_cache_dir = _env_fallback(
-        parsed.tbot_sa1_wan_text_embedding_cache_dir,
-        "TBOT_SA1_WAN_TEXT_EMBED_CACHE_DIR",
+    parsed.wsa_large_text_embedding_cache_dir = _env_fallback(
+        parsed.wsa_large_text_embedding_cache_dir,
+        "WSA_LARGE_TEXT_EMBED_CACHE_DIR",
     )
-    parsed.tbot_sa1_wan_text_embedding_cache_dir = _env_fallback(
-        parsed.tbot_sa1_wan_text_embedding_cache_dir,
+    parsed.wsa_large_text_embedding_cache_dir = _env_fallback(
+        parsed.wsa_large_text_embedding_cache_dir,
         "TEXT_EMBED_CACHE_DIR",
     )
-    context_len_env = os.environ.get("TBOT_SA1_WAN_CONTEXT_LEN")
-    if parsed.tbot_sa1_wan_context_len is None and context_len_env is not None:
-        parsed.tbot_sa1_wan_context_len = int(context_len_env)
+    context_len_env = os.environ.get("WSA_LARGE_CONTEXT_LEN")
+    if parsed.wsa_large_context_len is None and context_len_env is not None:
+        parsed.wsa_large_context_len = int(context_len_env)
     return parsed
 
 
@@ -356,29 +356,29 @@ def apply_runtime_config_overrides(config: PreTrainedConfig, args: ServeArgs) ->
         config.da3_model_path_or_name = args.da3_model_path_or_name
     if args.da3_code_root is not None and hasattr(config, "da3_code_root"):
         config.da3_code_root = args.da3_code_root
-    if is_tbot_sa1(config.type) and args.disable_3d_teacher_for_eval and hasattr(config, "lambda_3d"):
+    if is_wsa_base(config.type) and args.disable_3d_teacher_for_eval and hasattr(config, "lambda_3d"):
         config.lambda_3d = 0.0
-    if is_tbot_sa1_wan(config.type):
-        if args.tbot_sa1_wan_model_id is not None and hasattr(config, "model_id"):
-            config.model_id = args.tbot_sa1_wan_model_id
-        if args.tbot_sa1_wan_tokenizer_model_id is not None and hasattr(config, "tokenizer_model_id"):
-            config.tokenizer_model_id = args.tbot_sa1_wan_tokenizer_model_id
+    if is_wsa_large(config.type):
+        if args.wsa_large_model_id is not None and hasattr(config, "model_id"):
+            config.model_id = args.wsa_large_model_id
+        if args.wsa_large_tokenizer_model_id is not None and hasattr(config, "tokenizer_model_id"):
+            config.tokenizer_model_id = args.wsa_large_tokenizer_model_id
         if (
-            args.tbot_sa1_wan_action_dit_pretrained_path is not None
+            args.wsa_large_action_dit_pretrained_path is not None
             and hasattr(config, "action_dit_pretrained_path")
         ):
-            config.action_dit_pretrained_path = args.tbot_sa1_wan_action_dit_pretrained_path
+            config.action_dit_pretrained_path = args.wsa_large_action_dit_pretrained_path
         if (
-            args.tbot_sa1_wan_future_3d_pretrained_path is not None
+            args.wsa_large_future_3d_pretrained_path is not None
             and hasattr(config, "future_3d_pretrained_path")
         ):
-            config.future_3d_pretrained_path = args.tbot_sa1_wan_future_3d_pretrained_path
+            config.future_3d_pretrained_path = args.wsa_large_future_3d_pretrained_path
         if hasattr(config, "load_text_encoder"):
-            config.load_text_encoder = bool(args.tbot_sa1_wan_load_text_encoder)
+            config.load_text_encoder = bool(args.wsa_large_load_text_encoder)
         if hasattr(config, "redirect_common_files"):
-            config.redirect_common_files = bool(args.tbot_sa1_wan_redirect_common_files)
+            config.redirect_common_files = bool(args.wsa_large_redirect_common_files)
         if hasattr(config, "skip_dit_load_from_pretrain"):
-            config.skip_dit_load_from_pretrain = bool(args.tbot_sa1_wan_skip_dit_load_from_pretrain)
+            config.skip_dit_load_from_pretrain = bool(args.wsa_large_skip_dit_load_from_pretrain)
         if args.disable_3d_teacher_for_eval and hasattr(config, "lambda_3d"):
             config.lambda_3d = 0.0
     if args.num_inference_steps is not None and hasattr(config, "num_inference_steps"):
@@ -388,25 +388,25 @@ def apply_runtime_config_overrides(config: PreTrainedConfig, args: ServeArgs) ->
 def resolve_policy_components(config: PreTrainedConfig, *, rtc_enabled: bool):
     if config.type not in SUPPORTED_POLICY_TYPES:
         raise ValueError(
-            "Expected a TBot_SA1/TBot_SA1_Wan or InternVLA-A1 checkpoint, "
+            "Expected a WSA_Base/WSA_Large or InternVLA-A1 checkpoint, "
             f"got config.type={config.type!r}. Supported types: {sorted(SUPPORTED_POLICY_TYPES)}."
         )
 
     if config.type in {"qwena1", "internvla_a1_3b"}:
         if rtc_enabled:
             raise ValueError(
-                "RTC serving is only supported for TBotSA1 checkpoints. "
+                "RTC serving is only supported for WSABase checkpoints. "
                 "Set RTC_ENABLED=false for InternVLA-A1."
             )
         return get_policy_class(config.type), QwenA1ProcessorTransformFn
 
-    if is_tbot_sa1_wan(config.type):
+    if is_wsa_large(config.type):
         if rtc_enabled:
-            raise NotImplementedError("TBot_SA1_Wan Real Lift2 example serving currently supports sync mode only.")
+            raise NotImplementedError("WSA_Large Real Lift2 example serving currently supports sync mode only.")
         return get_policy_class(config.type), None
 
-    policy_cls = TBotSA1RTCPolicy if rtc_enabled else get_policy_class(config.type)
-    return policy_cls, TBotSA1ProcessorTransformFn
+    policy_cls = WSABaseRTCPolicy if rtc_enabled else get_policy_class(config.type)
+    return policy_cls, WSABaseProcessorTransformFn
 
 
 def resolve_stats(stats_path: Path, requested_key: str | None) -> tuple[str, dict[str, Any]]:
@@ -477,7 +477,7 @@ def coerce_history(image_value: Any) -> np.ndarray:
     return np.stack([frames[0], frames[-1]], axis=0)
 
 
-def tbot_sa1_wan_shape_meta(config: PreTrainedConfig) -> dict[str, list[dict[str, object]]]:
+def wsa_large_shape_meta(config: PreTrainedConfig) -> dict[str, list[dict[str, object]]]:
     action_dim = int(getattr(config, "action_dim", 14))
     proprio_dim = int(getattr(config, "proprio_dim", action_dim))
     return {
@@ -486,11 +486,11 @@ def tbot_sa1_wan_shape_meta(config: PreTrainedConfig) -> dict[str, list[dict[str
     }
 
 
-def _select_tbot_sa1_wan_stats_payload(
+def _select_wsa_large_stats_payload(
     stats_root: dict[str, Any],
     requested_key: str | None,
 ) -> tuple[str, dict[str, Any]]:
-    stats_aliases = (TBOT_SA1_WAN, "tbot_sa1_wan", *TBOT_SA1_WAN_LEGACY_ALIASES)
+    stats_aliases = (WSA_LARGE, "wsa_large", *WSA_LARGE_LEGACY_ALIASES)
     if any(stats_alias in stats_root for stats_alias in stats_aliases):
         return requested_key or "real_lift2", stats_root
 
@@ -511,21 +511,21 @@ def _select_tbot_sa1_wan_stats_payload(
     return "real_lift2", stats_root
 
 
-def resolve_tbot_sa1_wan_stats(
+def resolve_wsa_large_stats(
     stats_path: Path,
     requested_key: str | None,
     config: PreTrainedConfig,
 ) -> tuple[str, dict[str, Any]]:
     raw_payload = load_dataset_stats_from_json(str(stats_path))
-    stats_key, selected_payload = _select_tbot_sa1_wan_stats_payload(raw_payload, requested_key)
-    return stats_key, ensure_tbot_sa1_wan_stats_format(
+    stats_key, selected_payload = _select_wsa_large_stats_payload(raw_payload, requested_key)
+    return stats_key, ensure_wsa_large_stats_format(
         selected_payload,
-        shape_meta=tbot_sa1_wan_shape_meta(config),
+        shape_meta=wsa_large_shape_meta(config),
         require_state=True,
     )
 
 
-def _infer_tbot_sa1_wan_action_dim(stats_payload: dict[str, Any], config: PreTrainedConfig) -> int:
+def _infer_wsa_large_action_dim(stats_payload: dict[str, Any], config: PreTrainedConfig) -> int:
     action_stats = stats_payload.get("action", {})
     if isinstance(action_stats, dict):
         for key_stats in action_stats.values():
@@ -542,14 +542,14 @@ def _infer_tbot_sa1_wan_action_dim(stats_payload: dict[str, Any], config: PreTra
     return int(getattr(config, "action_dim", 14))
 
 
-def resize_tbot_sa1_wan_video_view(video: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
+def resize_wsa_large_video_view(video: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
     try:
         return F.interpolate(video, size=size, mode="bilinear", align_corners=False, antialias=True)
     except TypeError:
         return F.interpolate(video, size=size, mode="bilinear", align_corners=False)
 
 
-def concat_tbot_sa1_wan_camera_views(
+def concat_wsa_large_camera_views(
     video: torch.Tensor,
     target_video_size: tuple[int, int],
     concat_layout: str,
@@ -559,7 +559,7 @@ def concat_tbot_sa1_wan_camera_views(
     if concat_layout == "single":
         if num_cameras != 1:
             raise ValueError(f"`single` camera layout requires 1 camera, got {num_cameras}.")
-        return resize_tbot_sa1_wan_video_view(video[0], target_video_size)
+        return resize_wsa_large_video_view(video[0], target_video_size)
 
     if concat_layout == "horizontal":
         if target_w % num_cameras != 0:
@@ -569,7 +569,7 @@ def concat_tbot_sa1_wan_camera_views(
             )
         tile_w = target_w // num_cameras
         return torch.cat(
-            [resize_tbot_sa1_wan_video_view(video[view_idx], (target_h, tile_w)) for view_idx in range(num_cameras)],
+            [resize_wsa_large_video_view(video[view_idx], (target_h, tile_w)) for view_idx in range(num_cameras)],
             dim=-1,
         )
 
@@ -581,7 +581,7 @@ def concat_tbot_sa1_wan_camera_views(
             )
         tile_h = target_h // num_cameras
         return torch.cat(
-            [resize_tbot_sa1_wan_video_view(video[view_idx], (tile_h, target_w)) for view_idx in range(num_cameras)],
+            [resize_wsa_large_video_view(video[view_idx], (tile_h, target_w)) for view_idx in range(num_cameras)],
             dim=-2,
         )
 
@@ -596,18 +596,18 @@ def concat_tbot_sa1_wan_camera_views(
         bottom_h = target_h // 3
         top_h = target_h - bottom_h
         half_w = target_w // 2
-        cam_top = resize_tbot_sa1_wan_video_view(video[0], (top_h, target_w))
-        cam_left = resize_tbot_sa1_wan_video_view(video[1], (bottom_h, half_w))
-        cam_right = resize_tbot_sa1_wan_video_view(video[2], (bottom_h, half_w))
+        cam_top = resize_wsa_large_video_view(video[0], (top_h, target_w))
+        cam_left = resize_wsa_large_video_view(video[1], (bottom_h, half_w))
+        cam_right = resize_wsa_large_video_view(video[2], (bottom_h, half_w))
         return torch.cat([cam_top, torch.cat([cam_left, cam_right], dim=-1)], dim=-2)
 
     raise ValueError(
-        f"Invalid TBot_SA1_Wan concat layout: {concat_layout}. "
+        f"Invalid WSA_Large concat layout: {concat_layout}. "
         "Expected one of: single, horizontal, vertical, robotwin."
     )
 
 
-class TBotSA1WanRealLift2Adapter:
+class WSALargeRealLift2Adapter:
     def __init__(
         self,
         args: ServeArgs,
@@ -623,22 +623,22 @@ class TBotSA1WanRealLift2Adapter:
         self.target_proprio_dim = int(getattr(config, "proprio_dim", 14))
         self.state_normalizer = self._build_state_normalizer(stats_payload)
         self.text_embedding_cache_dir = (
-            Path(args.tbot_sa1_wan_text_embedding_cache_dir).expanduser()
-            if args.tbot_sa1_wan_text_embedding_cache_dir
+            Path(args.wsa_large_text_embedding_cache_dir).expanduser()
+            if args.wsa_large_text_embedding_cache_dir
             else None
         )
         self.context_len = int(
-            args.tbot_sa1_wan_context_len
-            if args.tbot_sa1_wan_context_len is not None
+            args.wsa_large_context_len
+            if args.wsa_large_context_len is not None
             else getattr(config, "tokenizer_max_len", 128)
         )
         if self.text_embedding_cache_dir is not None and not self.text_embedding_cache_dir.is_dir():
             raise FileNotFoundError(
-                f"TBot_SA1_Wan text embedding cache dir does not exist: {self.text_embedding_cache_dir}"
+                f"WSA_Large text embedding cache dir does not exist: {self.text_embedding_cache_dir}"
             )
-        if self.text_embedding_cache_dir is None and not bool(args.tbot_sa1_wan_load_text_encoder):
+        if self.text_embedding_cache_dir is None and not bool(args.wsa_large_load_text_encoder):
             raise ValueError(
-                "TBOT_SA1_WAN_LOAD_TEXT_ENCODER=false requires TBOT_SA1_WAN_TEXT_EMBED_CACHE_DIR. "
+                "WSA_LARGE_LOAD_TEXT_ENCODER=false requires WSA_LARGE_TEXT_EMBED_CACHE_DIR. "
                 "Precompute the prompt embedding first, or enable the text encoder."
             )
 
@@ -652,16 +652,16 @@ class TBotSA1WanRealLift2Adapter:
     def _build_state_normalizer(self, stats_payload: dict[str, Any]) -> SingleFieldLinearNormalizer | None:
         state_stats = stats_payload.get("state", {})
         if not state_stats:
-            logging.warning("TBot_SA1_Wan stats contain no state section; proprio will be passed raw.")
+            logging.warning("WSA_Large stats contain no state section; proprio will be passed raw.")
             return None
 
-        state_key = self.args.tbot_sa1_wan_state_key
+        state_key = self.args.wsa_large_state_key
         if state_key not in state_stats:
             if len(state_stats) == 1:
                 state_key = next(iter(state_stats))
             else:
                 raise KeyError(
-                    f"TBot_SA1_Wan state stats key {state_key!r} not found. Available keys: {list(state_stats.keys())}"
+                    f"WSA_Large state stats key {state_key!r} not found. Available keys: {list(state_stats.keys())}"
                 )
 
         selected_stats = {
@@ -686,7 +686,7 @@ class TBotSA1WanRealLift2Adapter:
 
     def _load_cached_text_context(self, prompt: str) -> tuple[torch.Tensor, torch.Tensor]:
         if self.text_embedding_cache_dir is None:
-            raise ValueError("TBot_SA1_Wan text embedding cache dir is not set.")
+            raise ValueError("WSA_Large text embedding cache dir is not set.")
         cache_path = build_text_embedding_cache_path(
             self.text_embedding_cache_dir,
             prompt,
@@ -694,9 +694,9 @@ class TBotSA1WanRealLift2Adapter:
         )
         if not cache_path.exists():
             raise FileNotFoundError(
-                f"Missing TBot_SA1_Wan text embedding cache: {cache_path}. "
+                f"Missing WSA_Large text embedding cache: {cache_path}. "
                 "Precompute text embeddings with the same task prompt, "
-                "or set TBOT_SA1_WAN_LOAD_TEXT_ENCODER=true."
+                "or set WSA_LARGE_LOAD_TEXT_ENCODER=true."
             )
         payload = torch.load(cache_path, map_location="cpu")
         context = payload["context"]
@@ -734,26 +734,26 @@ class TBotSA1WanRealLift2Adapter:
                 if history is not None
             ]
         if not camera_histories:
-            raise ValueError("TBot_SA1_Wan serving requires at least one valid camera view.")
+            raise ValueError("WSA_Large serving requires at least one valid camera view.")
 
         camera_images = [self._image_to_chw_float(history[-1]) for history in camera_histories]
         video = torch.stack(camera_images, dim=0).unsqueeze(1)
-        target_video_size = resolve_tbot_sa1_wan_video_size(
+        target_video_size = resolve_wsa_large_video_size(
             len(camera_images),
-            (self.args.tbot_sa1_wan_video_height, self.args.tbot_sa1_wan_video_width),
-            bool(self.args.tbot_sa1_wan_standardize_video_size_by_cameras),
+            (self.args.wsa_large_video_height, self.args.wsa_large_video_width),
+            bool(self.args.wsa_large_standardize_video_size_by_cameras),
         )
-        concat_layout = resolve_tbot_sa1_wan_concat_layout(
+        concat_layout = resolve_wsa_large_concat_layout(
             len(camera_images),
-            self.args.tbot_sa1_wan_concat_multi_camera,
+            self.args.wsa_large_concat_multi_camera,
         )
-        input_image = concat_tbot_sa1_wan_camera_views(video, target_video_size, concat_layout)
+        input_image = concat_wsa_large_camera_views(video, target_video_size, concat_layout)
         input_image = (input_image - 0.5) / 0.5
         inputs = {
             "input_image": input_image.to(device=self.device, dtype=self.dtype),
             "proprio": self._normalize_proprio(state),
         }
-        prompt = build_tbot_sa1_wan_prompt(task)
+        prompt = build_wsa_large_prompt(task)
         if self.text_embedding_cache_dir is not None:
             context, context_mask = self._load_cached_text_context(prompt)
             inputs["context"] = context
@@ -763,7 +763,7 @@ class TBotSA1WanRealLift2Adapter:
         return inputs
 
 
-class TBotSA1RemotePolicy:
+class WSABaseRemotePolicy:
     def __init__(self, args: ServeArgs):
         self.args = args
         self.ckpt_dir = resolve_ckpt_dir(args.ckpt_path)
@@ -772,8 +772,8 @@ class TBotSA1RemotePolicy:
         config = PreTrainedConfig.from_pretrained(self.ckpt_dir)
         apply_runtime_config_overrides(config, args)
         policy_cls, processor_transform_cls = resolve_policy_components(config, rtc_enabled=args.rtc_enabled)
-        self.is_tbot_sa1_wan = is_tbot_sa1_wan(config.type)
-        self.tbot_sa1_wan_adapter: TBotSA1WanRealLift2Adapter | None = None
+        self.is_wsa_large = is_wsa_large(config.type)
+        self.wsa_large_adapter: WSALargeRealLift2Adapter | None = None
         self.device = resolve_device(args.device)
         self.load_device = resolve_device(args.load_device) if args.load_device else ("cpu" if self.device != "cpu" else "cpu")
         self.cosmos_device = resolve_device(args.cosmos_device) if args.cosmos_device else self.device
@@ -802,7 +802,7 @@ class TBotSA1RemotePolicy:
         self.infer_horizon = int(args.infer_horizon or getattr(config, "n_action_steps", action_horizon))
 
         self.policy = policy_cls.from_pretrained(config=config, pretrained_name_or_path=self.ckpt_dir)
-        if is_tbot_sa1(config.type) and hasattr(self.policy, "model"):
+        if is_wsa_base(config.type) and hasattr(self.policy, "model"):
             setattr(
                 self.policy.model,
                 "omit_visual_tokens_in_causal_inference",
@@ -818,16 +818,16 @@ class TBotSA1RemotePolicy:
             raise FileNotFoundError(
                 f"stats.json not found at {stats_path}. Pass --stats_path if it was saved elsewhere."
             )
-        if self.is_tbot_sa1_wan:
-            self.stats_key, tbot_sa1_wan_stats = resolve_tbot_sa1_wan_stats(stats_path, args.stats_key, config)
-            self.policy.set_action_postprocess_from_stats(tbot_sa1_wan_stats)
-            self.target_action_dim = _infer_tbot_sa1_wan_action_dim(tbot_sa1_wan_stats, config)
+        if self.is_wsa_large:
+            self.stats_key, wsa_large_stats = resolve_wsa_large_stats(stats_path, args.stats_key, config)
+            self.policy.set_action_postprocess_from_stats(wsa_large_stats)
+            self.target_action_dim = _infer_wsa_large_action_dim(wsa_large_stats, config)
             self.action_mean = np.zeros((self.target_action_dim,), dtype=np.float32)
             self.action_std = np.ones((self.target_action_dim,), dtype=np.float32)
-            self.tbot_sa1_wan_adapter = TBotSA1WanRealLift2Adapter(
+            self.wsa_large_adapter = WSALargeRealLift2Adapter(
                 args=args,
                 config=config,
-                stats_payload=tbot_sa1_wan_stats,
+                stats_payload=wsa_large_stats,
                 device=self.device,
                 dtype=self.runtime_dtype,
             )
@@ -866,7 +866,7 @@ class TBotSA1RemotePolicy:
                 or getattr(config, "qwen3_vl_pretrained_path", None)
             )
             if processor_path is None:
-                raise ValueError("Failed to resolve a Qwen3-VL processor path for TBotSA1 serving.")
+                raise ValueError("Failed to resolve a Qwen3-VL processor path for WSABase serving.")
             self.processor_fn = processor_transform_cls(
                 pretrained_model_name_or_path=processor_path,
                 max_length=int(getattr(config, "tokenizer_max_length", 48)),
@@ -907,7 +907,7 @@ class TBotSA1RemotePolicy:
             try:
                 self.delta_mask = get_mask_mapping(self.stats_key).detach().cpu().numpy().astype(np.float32)
             except KeyError:
-                if self.is_tbot_sa1_wan:
+                if self.is_wsa_large:
                     self.delta_mask = get_mask_mapping("real_lift2").detach().cpu().numpy().astype(np.float32)
                 else:
                     raise
@@ -930,7 +930,7 @@ class TBotSA1RemotePolicy:
             "omit_visual_tokens_in_causal_inference": bool(
                 getattr(getattr(self.policy, "model", None), "omit_visual_tokens_in_causal_inference", True)
             ),
-            "tbot_sa1_wan_sync_only": bool(self.is_tbot_sa1_wan),
+            "wsa_large_sync_only": bool(self.is_wsa_large),
         }
 
     @property
@@ -1010,12 +1010,12 @@ class TBotSA1RemotePolicy:
 
         return inputs, state
 
-    def _prepare_tbot_sa1_wan_inputs(self, obs: dict[str, Any]) -> tuple[dict[str, Any], np.ndarray]:
+    def _prepare_wsa_large_inputs(self, obs: dict[str, Any]) -> tuple[dict[str, Any], np.ndarray]:
         images = obs.get("images")
         if not isinstance(images, dict):
             raise KeyError("Request is missing `images` dictionary.")
-        if self.tbot_sa1_wan_adapter is None:
-            raise RuntimeError("TBot_SA1_Wan adapter is not initialized.")
+        if self.wsa_large_adapter is None:
+            raise RuntimeError("WSA_Large adapter is not initialized.")
 
         head_history, head_mask = self._resolve_image_history(images, f"{OBS_IMAGES}.image0")
         left_history, left_mask = self._resolve_image_history(images, f"{OBS_IMAGES}.image1")
@@ -1031,7 +1031,7 @@ class TBotSA1RemotePolicy:
             )
             if mask
         ]
-        return self.tbot_sa1_wan_adapter.build_inputs(
+        return self.wsa_large_adapter.build_inputs(
             camera_histories=camera_histories,
             state=state,
             task=prompt,
@@ -1094,13 +1094,13 @@ class TBotSA1RemotePolicy:
             self.policy.reset()
 
         inputs, state = (
-            self._prepare_tbot_sa1_wan_inputs(obs)
-            if self.is_tbot_sa1_wan
+            self._prepare_wsa_large_inputs(obs)
+            if self.is_wsa_large
             else self._prepare_inputs(obs)
         )
         if self.rtc_processor is not None:
-            if self.is_tbot_sa1_wan:
-                raise NotImplementedError("TBot_SA1_Wan Real Lift2 example serving currently supports sync mode only.")
+            if self.is_wsa_large:
+                raise NotImplementedError("WSA_Large Real Lift2 example serving currently supports sync mode only.")
             inference_delay = None
             prev_chunk_left_over = None
             if obs.get("inference_delay") is not None:
@@ -1118,7 +1118,7 @@ class TBotSA1RemotePolicy:
                 )
         else:
             with torch.no_grad():
-                if self.is_tbot_sa1_wan:
+                if self.is_wsa_large:
                     action_pred = self.policy.predict_action_chunk(inputs)
                 else:
                     action_pred, _ = self.policy.predict_action_chunk(
@@ -1129,7 +1129,7 @@ class TBotSA1RemotePolicy:
         if action_pred.ndim != 3:
             raise RuntimeError(f"Unexpected action prediction shape: {tuple(action_pred.shape)}")
         model_action_pred = action_pred[0, : self.infer_horizon, : self.target_action_dim]
-        if self.is_tbot_sa1_wan:
+        if self.is_wsa_large:
             action_pred = model_action_pred
         else:
             action_pred = self.unnormalize_action_fn({"action": model_action_pred})["action"]
@@ -1155,7 +1155,7 @@ class TBotSA1RemotePolicy:
 
 def main(args: ServeArgs) -> None:
     logging.info("Serve args:\n%s", json.dumps(asdict(args), indent=2, ensure_ascii=False))
-    policy = TBotSA1RemotePolicy(args)
+    policy = WSABaseRemotePolicy(args)
 
     hostname = socket.gethostname()
     try:
@@ -1163,7 +1163,7 @@ def main(args: ServeArgs) -> None:
     except OSError as exc:
         local_ip = "unknown"
         logging.warning("Failed to resolve hostname %s to an IP address: %s", hostname, exc)
-    logging.info("Creating TBotSA1 server (host=%s, ip=%s, port=%s)", hostname, local_ip, args.port)
+    logging.info("Creating WSABase server (host=%s, ip=%s, port=%s)", hostname, local_ip, args.port)
     logging.info("Server metadata: %s", json.dumps(policy.metadata, indent=2, ensure_ascii=False))
 
     server = WebsocketPolicyServer(

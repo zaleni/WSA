@@ -28,9 +28,9 @@ except ImportError:
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Test connectivity between the robot-side client and a remote TBotSA1 websocket server."
+        description="Test connectivity between the robot-side client and a remote WSABase websocket server."
     )
-    parser.add_argument("--ws_url", default="ws://127.0.0.1:8000", help="Remote TBotSA1 websocket URL.")
+    parser.add_argument("--ws_url", default="ws://127.0.0.1:8000", help="Remote WSABase websocket URL.")
     parser.add_argument(
         "--prompt",
         default="Clear the junk and items off the desktop.",
@@ -66,7 +66,7 @@ def print_metadata(ws_url: str) -> dict:
     finally:
         client.close()
 
-    print("[Connect] Connected to remote TBotSA1 server.")
+    print("[Connect] Connected to remote WSABase server.")
     print("[Metadata]")
     print(json.dumps(metadata, indent=2, ensure_ascii=False))
     return metadata
@@ -122,7 +122,7 @@ def run_smoke_infer(args) -> None:
 
 def main():
     args = parse_args()
-    print(f"[Connect] Testing remote TBotSA1 server: {args.ws_url}")
+    print(f"[Connect] Testing remote WSABase server: {args.ws_url}")
     print_metadata(args.ws_url)
 
     if args.smoke_infer:

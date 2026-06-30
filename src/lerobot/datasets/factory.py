@@ -41,9 +41,9 @@ from lerobot.datasets.transformed_dataset import (
     MultiStreamingLeRobotDataset, 
 )
 from lerobot.policies.fastwam.configuration_fastwam import FastWAMDatasetConfig
-from lerobot.policies.TBot_SA1_Wan.configuration_tbot_sa1_wan import TBotSA1WanDatasetConfig
-from lerobot.policies.TBot_SA1.configuration_tbot_sa1 import TBotSA1DatasetConfig, RoboChallengeRawW1DatasetConfig
-from lerobot.policies.names import TBOT_SA1_WAN, TBOT_SA1_WAN_LEGACY_ALIASES, is_tbot_sa1
+from lerobot.policies.WSA_Large.configuration_wsa_large import WSALargeDatasetConfig
+from lerobot.policies.WSA_Base.configuration_wsa_base import WSABaseDatasetConfig, RoboChallengeRawW1DatasetConfig
+from lerobot.policies.names import WSA_LARGE, WSA_LARGE_LEGACY_ALIASES, is_wsa_base
 from lerobot.transforms.constants import get_feature_mapping, get_image_mapping, infer_embodiment_variant
 from lerobot.utils.constants import ACTION, OBS_PREFIX, REWARD, OBS_STATE
 from lerobot.utils.constants import HF_LEROBOT_HOME
@@ -721,17 +721,17 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
     Returns:
         LeRobotDataset | MultiLeRobotDataset
     """
-    if isinstance(cfg.dataset, (FastWAMDatasetConfig, TBotSA1WanDatasetConfig)):
-        if isinstance(cfg.dataset, TBotSA1WanDatasetConfig):
-            from lerobot.policies.TBot_SA1_Wan.dataset_tbot_sa1_wan import (
-                build_tbot_sa1_wan_dataset,
-                resolve_tbot_sa1_wan_dataset_dirs,
+    if isinstance(cfg.dataset, (FastWAMDatasetConfig, WSALargeDatasetConfig)):
+        if isinstance(cfg.dataset, WSALargeDatasetConfig):
+            from lerobot.policies.WSA_Large.dataset_wsa_large import (
+                build_wsa_large_dataset,
+                resolve_wsa_large_dataset_dirs,
             )
 
-            build_policy_dataset = build_tbot_sa1_wan_dataset
-            policy_label = "TBot_SA1_Wan"
-            stats_filename = "tbot_sa1_wan_dataset_stats.json"
-            stats_key = "tbot_sa1_wan"
+            build_policy_dataset = build_wsa_large_dataset
+            policy_label = "WSA_Large"
+            stats_filename = "wsa_large_dataset_stats.json"
+            stats_key = "wsa_large"
         else:
             from lerobot.policies.fastwam.dataset_fastwam import build_fastwam_dataset
 
@@ -740,7 +740,7 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
             stats_filename = "fastwam_dataset_stats.json"
             stats_key = "fastwam"
 
-        if cfg.dataset.dist_loading and not isinstance(cfg.dataset, TBotSA1WanDatasetConfig):
+        if cfg.dataset.dist_loading and not isinstance(cfg.dataset, WSALargeDatasetConfig):
             raise ValueError(
                 f"{policy_label} training in this framework does not support `dataset.dist_loading=true`. "
                 "Leave it disabled so Accelerate can shard the dataloader correctly."
@@ -750,8 +750,8 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
                 f"{policy_label} training needs either `dataset.text_embedding_cache_dir` for cached text embeddings "
                 "or `policy.load_text_encoder=true` for on-the-fly prompt encoding."
             )
-        if isinstance(cfg.dataset, TBotSA1WanDatasetConfig) and float(getattr(cfg.policy, "lambda_3d", 0.0)) > 0.0:
-            from lerobot.policies.TBot_SA1_Wan.dataset_tbot_sa1_wan import resolve_tbot_sa1_wan_concat_layout
+        if isinstance(cfg.dataset, WSALargeDatasetConfig) and float(getattr(cfg.policy, "lambda_3d", 0.0)) > 0.0:
+            from lerobot.policies.WSA_Large.dataset_wsa_large import resolve_wsa_large_concat_layout
 
             cfg.dataset.return_future_3d_images = True
             num_views = int(getattr(cfg.policy, "da3_num_views", 0))
@@ -762,7 +762,7 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
                     "dataset.processor_num_output_cameras."
                 )
             view_layout = getattr(cfg.policy, "future_3d_view_attention_layout", "auto")
-            concat_layout = resolve_tbot_sa1_wan_concat_layout(
+            concat_layout = resolve_wsa_large_concat_layout(
                 num_output_cameras,
                 getattr(cfg.dataset, "concat_multi_camera", "auto"),
             )
@@ -779,11 +779,11 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
                     f"effective policy.future_3d_view_attention_layout={view_layout!r}, "
                     f"dataset.concat_multi_camera={concat_layout!r}."
                 )
-        if isinstance(cfg.dataset, TBotSA1WanDatasetConfig):
+        if isinstance(cfg.dataset, WSALargeDatasetConfig):
             original_dataset_dirs = list(cfg.dataset.dataset_dirs)
             original_repo_id_file = cfg.dataset.repo_id_file
             original_dataset_sampling_weights = list(cfg.dataset.dataset_sampling_weights or [])
-            all_repo_ids = resolve_tbot_sa1_wan_dataset_dirs(cfg.dataset)
+            all_repo_ids = resolve_wsa_large_dataset_dirs(cfg.dataset)
             repo_ids = all_repo_ids
             repo_weights_map = None
             frames_map = None
@@ -815,7 +815,7 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
                             weight_cfg,
                         )
                         logging.info(
-                            "[make_dataset] TBot_SA1_Wan dist_loading=True, using source-aware "
+                            "[make_dataset] WSA_Large dist_loading=True, using source-aware "
                             "total_frames-balanced assignment."
                         )
                     else:
@@ -825,13 +825,13 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
                             world_size,
                         )
                         logging.info(
-                            "[make_dataset] TBot_SA1_Wan dist_loading=True, using "
+                            "[make_dataset] WSA_Large dist_loading=True, using "
                             "total_frames-balanced assignment."
                         )
                     repo_ids = rank_to_repos[rank]
                 except Exception as e:
                     logging.warning(
-                        "[make_dataset] TBot_SA1_Wan total_frames-based balancing failed with error: %s. "
+                        "[make_dataset] WSA_Large total_frames-based balancing failed with error: %s. "
                         "Falling back to simple rank-based assignment.",
                         e,
                     )
@@ -843,7 +843,7 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
             if repo_weights_map is not None:
                 cfg.dataset.dataset_sampling_weights = [repo_weights_map[rid] for rid in repo_ids]
                 logging.info(
-                    "[make_dataset] TBot_SA1_Wan weighted sampling enabled from %s",
+                    "[make_dataset] WSA_Large weighted sampling enabled from %s",
                     cfg.dataset.weight_rules_path,
                 )
             else:
@@ -856,38 +856,38 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
                 episodes_map=episodes_map,
                 repo_weights_map=repo_weights_map,
                 groups_cfg=weight_cfg,
-                label="TBot_SA1_Wan",
+                label="WSA_Large",
             )
 
         stats_cache_path = cfg.dataset.normalization_stats_path
         if stats_cache_path is None and cfg.output_dir is not None:
             stats_cache_path = str(Path(cfg.output_dir) / stats_filename)
         dataset = build_policy_dataset(cfg.dataset, stats_cache_path=stats_cache_path)
-        if isinstance(cfg.dataset, TBotSA1WanDatasetConfig):
+        if isinstance(cfg.dataset, WSALargeDatasetConfig):
             cfg.dataset.dataset_dirs = original_dataset_dirs
             cfg.dataset.repo_id_file = original_repo_id_file
             cfg.dataset.dataset_sampling_weights = original_dataset_sampling_weights
         checkpoint_stats = getattr(dataset, "checkpoint_stats", None)
-        if isinstance(cfg.dataset, TBotSA1WanDatasetConfig) and checkpoint_stats is not None:
+        if isinstance(cfg.dataset, WSALargeDatasetConfig) and checkpoint_stats is not None:
             data_stats = checkpoint_stats
-            for stats_alias in ("tbot_sa1_wan", *TBOT_SA1_WAN_LEGACY_ALIASES):
-                if stats_alias in data_stats and TBOT_SA1_WAN not in data_stats:
-                    data_stats[TBOT_SA1_WAN] = data_stats[stats_alias]
+            for stats_alias in ("wsa_large", *WSA_LARGE_LEGACY_ALIASES):
+                if stats_alias in data_stats and WSA_LARGE not in data_stats:
+                    data_stats[WSA_LARGE] = data_stats[stats_alias]
                     break
-            if TBOT_SA1_WAN in data_stats and "tbot_sa1_wan" not in data_stats:
-                data_stats["tbot_sa1_wan"] = data_stats[TBOT_SA1_WAN]
+            if WSA_LARGE in data_stats and "wsa_large" not in data_stats:
+                data_stats["wsa_large"] = data_stats[WSA_LARGE]
         else:
             data_stats = {stats_key: dataset.dataset_stats} if dataset.dataset_stats is not None else {}
-            if isinstance(cfg.dataset, TBotSA1WanDatasetConfig) and dataset.dataset_stats is not None:
-                data_stats[TBOT_SA1_WAN] = dataset.dataset_stats
+            if isinstance(cfg.dataset, WSALargeDatasetConfig) and dataset.dataset_stats is not None:
+                data_stats[WSA_LARGE] = dataset.dataset_stats
         return dataset, data_stats
 
-    tbot_sa1_pipeline_image_aug = (
-        isinstance(cfg.dataset, TBotSA1DatasetConfig)
+    wsa_base_pipeline_image_aug = (
+        isinstance(cfg.dataset, WSABaseDatasetConfig)
         and cfg.dataset.image_transforms.enable
         and cfg.dataset.image_transforms.preset in {"pi05", "pi0.5", "pi05_style"}
     )
-    if tbot_sa1_pipeline_image_aug:
+    if wsa_base_pipeline_image_aug:
         image_transforms = None
     elif cfg.dataset.image_transforms.enable:
         image_transforms = ImageTransforms(cfg.dataset.image_transforms)
@@ -895,8 +895,8 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
         image_transforms = None
 
     if isinstance(cfg.dataset, RoboChallengeRawW1DatasetConfig):
-        if not is_tbot_sa1(cfg.policy.type):
-            raise ValueError("dataset.type=robochallenge_raw_* is only supported with policy.type=TBot_SA1.")
+        if not is_wsa_base(cfg.policy.type):
+            raise ValueError("dataset.type=robochallenge_raw_* is only supported with policy.type=WSA_Base.")
         if not cfg.dataset.raw_root:
             raise ValueError("dataset.raw_root must point to a RoboChallenge raw root for raw training.")
         if not cfg.dataset.use_external_stats or cfg.dataset.external_stats_path is None:
@@ -905,7 +905,7 @@ def make_dataset(cfg: TrainPipelineConfig) -> LeRobotDataset | StreamingLeRobotD
                 "dataset.external_stats_path. Compute stats before training."
             )
 
-        from lerobot.policies.TBot_SA1.robochallenge_raw_dataset import (
+        from lerobot.policies.WSA_Base.robochallenge_raw_dataset import (
             RoboChallengeRawAlohaDataset,
             RoboChallengeRawW1Dataset,
             get_robochallenge_raw_spec,

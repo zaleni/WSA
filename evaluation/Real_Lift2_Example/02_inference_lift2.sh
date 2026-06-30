@@ -20,7 +20,7 @@ build_env_assignments() {
   printf '%s ' "${assignments[@]}"
 }
 
-TBOT_SA1_ROOT="${TBOT_SA1_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
+WSA_BASE_ROOT="${WSA_BASE_ROOT:-$(cd "${SCRIPT_DIR}/../.." && pwd)}"
 REAL_LIFT_DIR="${REAL_LIFT_DIR:-${SCRIPT_DIR}}"
 ROS2_LIFT_PLAY_ROOT="${ROS2_LIFT_PLAY_ROOT:-${HOME}/ROS2_LIFT_Play}"
 LIFT_ROOT="${LIFT_ROOT:-$(dirname "${ROS2_LIFT_PLAY_ROOT}")/LIFT}"
@@ -77,7 +77,7 @@ SAFE_STOP_HOME_PUBLISH_STEPS="${SAFE_STOP_HOME_PUBLISH_STEPS:-180}"
 MANUAL_HOME_PUBLISH_STEPS="${MANUAL_HOME_PUBLISH_STEPS:-}"
 MANUAL_HOME_RESUME_GUARD_STEPS="${MANUAL_HOME_RESUME_GUARD_STEPS:-}"
 
-TBOT_SA1_ENV_VARS=(
+WSA_BASE_ENV_VARS=(
   REAL_LIFT2_RUNTIME_ROOT
   WS_URL
   PROMPT
@@ -109,11 +109,11 @@ TBOT_SA1_ENV_VARS=(
   MANUAL_HOME_RESUME_GUARD_STEPS
 )
 
-TBOT_SA1_ROOT_Q="$(shell_quote "${TBOT_SA1_ROOT}")"
+WSA_BASE_ROOT_Q="$(shell_quote "${WSA_BASE_ROOT}")"
 RUN_ENV_Q="$(shell_quote "${RUN_ENV}")"
 RUN_SCRIPT_Q="$(shell_quote "${RUN_SCRIPT}")"
-TBOT_SA1_ENV_ASSIGNMENTS="$(build_env_assignments "${TBOT_SA1_ENV_VARS[@]}")"
-TBOT_SA1_CMD="cd ${TBOT_SA1_ROOT_Q}; source ~/.bashrc; conda activate ${RUN_ENV_Q}; env ${TBOT_SA1_ENV_ASSIGNMENTS} bash ${RUN_SCRIPT_Q}; ${shell_exec}"
+WSA_BASE_ENV_ASSIGNMENTS="$(build_env_assignments "${WSA_BASE_ENV_VARS[@]}")"
+WSA_BASE_CMD="cd ${WSA_BASE_ROOT_Q}; source ~/.bashrc; conda activate ${RUN_ENV_Q}; env ${WSA_BASE_ENV_ASSIGNMENTS} bash ${RUN_SCRIPT_Q}; ${shell_exec}"
 
 # CAN
 gnome-terminal --title="can1" -- bash -lc "cd '${CAN_ROOT}'; ./arx_can1.sh; exec bash"
@@ -135,5 +135,5 @@ sleep 1
 gnome-terminal --title="realsense" -- $shell_type -i -c "cd '${REALSENSE_ROOT}'; ./realsense.sh; $shell_exec"
 sleep 3
 
-# TBot-SA1 Real Lift2 example inference
-gnome-terminal --title="tbot_sa1-real-lift2" -- $shell_type -i -c "${TBOT_SA1_CMD}"
+# WSA Real Lift2 example inference
+gnome-terminal --title="wsa_base-real-lift2" -- $shell_type -i -c "${WSA_BASE_CMD}"

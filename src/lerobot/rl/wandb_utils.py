@@ -23,11 +23,11 @@ from huggingface_hub.constants import SAFETENSORS_SINGLE_FILE
 from termcolor import colored
 
 from lerobot.configs.train import TrainPipelineConfig
-from lerobot.policies.names import TBOT_SA1, TBOT_SA1_WAN
+from lerobot.policies.names import WSA_BASE, WSA_LARGE
 from lerobot.utils.constants import PRETRAINED_MODEL_DIR
 
 
-DEFAULT_ARTIFACT_DISABLED_POLICY_TYPES = {TBOT_SA1, TBOT_SA1_WAN}
+DEFAULT_ARTIFACT_DISABLED_POLICY_TYPES = {WSA_BASE, WSA_LARGE}
 
 
 def cfg_to_group(cfg: TrainPipelineConfig, return_list: bool = False) -> list[str] | str:
