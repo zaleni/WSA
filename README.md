@@ -1,7 +1,7 @@
-<h1 align="center">WSA: a 3D-Causal World-Spatial-Action Model<br>for Generalizable Robot Control</h1>
+<h1 align="center">WSA: a 3D-Centric World-Spatial-Action Model<br>for Generalizable Robot Control</h1>
 
 <p align="center">
-  <img src="assets/logo_full_bold.png" alt="WSA" width="420">
+  <img src="assets/WSA_logo.png" alt="WSA" width="280">
 </p>
 
 <p align="center">
@@ -115,8 +115,8 @@ PyTorch 2.7.1.
 git clone https://github.com/zaleni/WSA.git
 cd WSA
 
-conda create -y -n wsa_base python=3.10
-conda activate wsa_base
+conda create -y -n wsa python=3.10
+conda activate wsa
 
 conda install -c conda-forge ffmpeg=7.1.1 svt-av1 -y
 

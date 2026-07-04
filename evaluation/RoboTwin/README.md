@@ -43,7 +43,7 @@ After the main WSA environment is ready, keep using the same environment
 and add the RoboTwin2.0 dependencies.
 
 ```bash
-conda activate wsa_base
+conda activate wsa
 
 sudo apt update
 sudo apt install -y libvulkan1 mesa-vulkan-drivers vulkan-tools

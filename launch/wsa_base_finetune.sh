@@ -8,7 +8,7 @@ export HF_HOME="${HF_HOME:-${HOME}/.cache/huggingface}"
 
 WANDB_TOKEN="${WANDB_TOKEN:-}"
 CONDA_ROOT="${_CONDA_ROOT:-${CONDA_ROOT:-}}"
-CONDA_ENV="${CONDA_ENV:-wsa_base}"
+CONDA_ENV="${CONDA_ENV:-wsa}"
 
 if [[ -n "${CONDA_ROOT}" && -f "${CONDA_ROOT}/etc/profile.d/conda.sh" ]]; then
     source "${CONDA_ROOT}/etc/profile.d/conda.sh"

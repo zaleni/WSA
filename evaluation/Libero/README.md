@@ -3,7 +3,7 @@
 This document provides instructions for evaluating WSA on LIBERO with a
 split two-environment setup:
 
-- `wsa_base` environment: serves policy inference over a local websocket.
+- `wsa` environment: serves policy inference over a local websocket.
 - `libero` environment: runs LIBERO benchmark rollouts.
 
 The two processes usually run on the same machine and communicate through a
@@ -26,7 +26,7 @@ Recommended layout: keep LIBERO at `third_party/LIBERO`.
 You need dependencies on both sides:
 
 - `libero` env: official LIBERO stack, plus this repo's evaluator extras.
-- `wsa_base` env: WSA serving stack, plus `tyro`, `matplotlib`,
+- `wsa` env: WSA serving stack, plus `tyro`, `matplotlib`,
   `mediapy`, `websockets`, and `msgpack`.
 
 Because LIBERO evaluation uses a separate environment, it is fine to follow the
@@ -49,11 +49,11 @@ conda activate libero
 bash evaluation/Libero/install_libero.sh
 ```
 
-If the `wsa_base` environment does not already have the extra serve-side
+If the `wsa` environment does not already have the extra serve-side
 dependencies, install:
 
 ```bash
-conda activate wsa_base
+conda activate wsa
 pip install tyro matplotlib mediapy websockets msgpack
 ```
 
@@ -147,10 +147,10 @@ the training launcher.
 
 ## Run
 
-1. Start the policy server in the `wsa_base` environment:
+1. Start the WSA policy server in the `wsa` environment:
 
 ```bash
-conda activate wsa_base
+conda activate wsa
 
 PORT=8000 \
 CHECKPOINT_DIR=/path/to/checkpoints/last/pretrained_model \

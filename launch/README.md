@@ -1,6 +1,6 @@
 # Launch Scripts
 
-WSA training entrypoints live directly in this directory:
+Current WSA Base training entrypoints live directly in this directory:
 
 - `wsa_base_pretrain.sh`
 - `wsa_base_finetune.sh`

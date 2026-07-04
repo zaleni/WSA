@@ -8,7 +8,7 @@ set -euo pipefail
 
 # WANDB_TOKEN=${WANDB_TOKEN}
 # CONDA_ROOT=${_CONDA_ROOT}
-# CONDA_ENV=wsa_base
+# CONDA_ENV=wsa
 
 # source ${CONDA_ROOT}/etc/profile.d/conda.sh
 # conda activate ${CONDA_ENV}
