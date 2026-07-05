@@ -40,6 +40,8 @@ ATTENTION_MASK_MODES = ("default", "causal")
 # Compatibility aliases for old development checkpoints/configs.
 @DatasetConfig.register_subclass("TBot_SA1")
 @DatasetConfig.register_subclass("tbot_sa1")
+@DatasetConfig.register_subclass("magicbot")
+@DatasetConfig.register_subclass("cubev2")
 @dataclass
 class WSABaseDatasetConfig(DatasetConfig):
     _canonical_type: ClassVar[str] = WSA_BASE
@@ -170,6 +172,8 @@ class RoboChallengeRawAlohaDatasetConfig(RoboChallengeRawW1DatasetConfig):
 # Compatibility aliases for old development checkpoints/configs.
 @PreTrainedConfig.register_subclass("TBot_SA1")
 @PreTrainedConfig.register_subclass("tbot_sa1")
+@PreTrainedConfig.register_subclass("magicbot")
+@PreTrainedConfig.register_subclass("cubev2")
 @dataclass
 class WSABaseConfig(PreTrainedConfig):
     _canonical_type: ClassVar[str] = WSA_BASE

@@ -16,6 +16,8 @@ from lerobot.transforms.core import DataTransformFn, DataDict
 
 @DataTransformFn.register_subclass("wsa_base_processor")
 @DataTransformFn.register_subclass("tbot_sa1_processor")
+@DataTransformFn.register_subclass("magicbot_processor")
+@DataTransformFn.register_subclass("cubev2_processor")
 @dataclass
 class Qwen3_VLProcessorTransformFn(DataTransformFn):
     pretrained_model_name_or_path: str = 'Qwen/Qwen3-VL-2B-Instruct'
@@ -94,6 +96,8 @@ class Qwen3_VLProcessorTransformFn(DataTransformFn):
 
 @DataTransformFn.register_subclass("unify_wsa_base_inputs")
 @DataTransformFn.register_subclass("unify_tbot_sa1_inputs")
+@DataTransformFn.register_subclass("unify_magicbot_inputs")
+@DataTransformFn.register_subclass("unify_cubev2_inputs")
 @dataclass
 class UnifyWSABaseInputsTransformFn(DataTransformFn):
     def __call__(self, data: DataDict) -> DataDict:
