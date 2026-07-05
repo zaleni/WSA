@@ -3,15 +3,17 @@
 This document provides instructions for reproducing our experimental results
 with [RoboTwin2.0](https://github.com/RoboTwin-Platform/RoboTwin).
 
-The main entry point is `eval_randomized_50.sh`, which runs WSA on the
+The main entry point is `eval_wsa_base.sh`, which runs WSA on the
 RoboTwin randomized 50-task benchmark. By default it loads the released
 `zaleni/WSA-RoboTwin` checkpoint; you can override the checkpoint, task
 range, episode count, and GPU allocation with environment variables.
 
 ## Introduction
 
-- `eval_randomized_50.sh`: maintained WSA randomized 50-task evaluation
+- `eval_wsa_base.sh`: maintained WSA-Base randomized 50-task evaluation
   wrapper. It defaults to `PRETRAINED_CKPT=zaleni/WSA-RoboTwin`.
+- `eval_wsa_large.sh`: WSA-Large delta-action randomized 50-task evaluation
+  wrapper.
 - `inference.py`: shared RoboTwin evaluator called by the shell wrapper.
 - `eval_config.py`: resolves per-task `infer_horizon` and
   `binarize_gripper` from `configs/robotwin_eval_config.yaml`.
@@ -88,7 +90,7 @@ DISABLE_DA3_TEACHER_FOR_EVAL=true \
 ACTION_MODE=delta \
 GPU_IDS=0,1 \
 MAX_JOBS_PER_GPU=2 \
-bash evaluation/RoboTwin/eval_randomized_50.sh
+bash evaluation/RoboTwin/eval_wsa_base.sh
 ```
 
 ## Common Options

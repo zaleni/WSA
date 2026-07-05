@@ -23,6 +23,7 @@ from .core.data.lerobot.utils.normalizer import (
     load_dataset_stats_from_json,
 )
 from .core.models.wan22.wsa_large import WSALarge
+from .core.models.wan22.wsa_large_joint import WSALargeJoint
 from .stats_adapter import ensure_wsa_large_stats_format
 
 
@@ -59,6 +60,7 @@ class WSALargePolicy(PreTrainedPolicy):
     def _variant_to_class(variant: str):
         mapping = {
             "wsa_large": WSALarge,
+            "wsa_large_joint": WSALargeJoint,
         }
         return mapping[variant]
 

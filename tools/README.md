@@ -9,3 +9,9 @@ workflows.
   LeRobot dataset.
 - `compute_norm_stats_multi.py`: compute and aggregate normalization statistics
   across multiple LeRobot datasets.
+- `wsa_large_compute_pretrain_norm_stats.sh`: group WSA-Large pretraining
+  datasets and compute per-group normalization stats with
+  `compute_norm_stats_multi.py`.
+- `precompute_text_embeds.py`: build WSA_Large text-embedding caches.
+- `preprocess_expert_backbones.py`: prepare Wan2.2 expert backbone weights.
+- `discover_robotwin_repos.py`: discover RoboTwin LeRobot repos for training.

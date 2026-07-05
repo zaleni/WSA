@@ -12,14 +12,18 @@ WSA_LARGE = "WSA_Large"
 TBOT_SA1 = WSA_BASE
 TBOT_SA1_WAN = WSA_LARGE
 
-WSA_BASE_LEGACY_ALIASES = frozenset({"TBot_SA1", "tbot_sa1"})
-WSA_LARGE_LEGACY_ALIASES = frozenset({"TBot_SA1_Wan", "tbot_sa1_wan"})
+WSA_BASE_LEGACY_ALIASES = frozenset({"TBot_SA1", "tbot_sa1", "cubev2", "magicbot"})
+WSA_LARGE_LEGACY_ALIASES = frozenset(
+    {"TBot_SA1_Wan", "tbot_sa1_wan", "MagicBot_R0", "magicbot_r0", "magicbot-r0"}
+)
 
 TBOT_SA1_LEGACY_ALIASES = WSA_BASE_LEGACY_ALIASES
 TBOT_SA1_WAN_LEGACY_ALIASES = WSA_LARGE_LEGACY_ALIASES
 
 WSA_BASE_ALIASES = frozenset({WSA_BASE, "wsa_base", *WSA_BASE_LEGACY_ALIASES})
-WSA_LARGE_ALIASES = frozenset({WSA_LARGE, "wsa_large", *WSA_LARGE_LEGACY_ALIASES})
+WSA_LARGE_ALIASES = frozenset(
+    {WSA_LARGE, "wsa_large", *WSA_LARGE_LEGACY_ALIASES}
+)
 TBOT_SA1_ALIASES = WSA_BASE_ALIASES
 TBOT_SA1_WAN_ALIASES = WSA_LARGE_ALIASES
 

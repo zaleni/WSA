@@ -28,10 +28,12 @@
 
 ## 🗞️ News
 
-- [2026-05-18]: 🏆 **WSA ranked 4th out of 100+ teams on the [RoboChallenge CVPR 2026 leaderboard](https://robochallenge.ai/competition/cvpr)** with fully open-source weights and code. (Team: MagicBot)
-- [2026-05-31]: 🎉 Released the WSA training, evaluation, and inference code.
-- [2026-05-31]: 🤗 Released the WSA Hugging Face model collection, including
+- [2026-07-06]: 🚀 Released **WSA-Large** code, weights, benchmark results, and
+  training/evaluation workflows for the 6B Wan2.2-based WSA model.
+- [2026-05-31]: 🎉 Released the WSA-Base training, evaluation, and inference code.
+- [2026-05-31]: 🤗 Released the WSA-Base Hugging Face model collection, including
   Base, RoboTwin, and LIBERO checkpoints.
+- [2026-05-18]: 🏆 **WSA ranked 4th out of 100+ teams on the [RoboChallenge CVPR 2026 leaderboard](https://robochallenge.ai/competition/cvpr)** with fully open-source weights and code. (Team: MagicBot)
 
 <a id="todo-list"></a>
 
@@ -40,9 +42,12 @@
 - [x] Provide RoboTwin, LIBERO, and real-world robot example inference workflows.
 - [x] Release WSA policy code and fine-tuning scripts.
 - [x] Release WSA pretraining scripts.
+- [x] **Release the WSA-Large code for the 6B WSA model based on the Wan2.2 model backbone.**
+- [x] **Release WSA-Large weights and benchmark results.**
 - [ ] Release the arXiv paper and citation.
-- [ ] **[Coming soon] Release the WSA-Large code for the 6B WSA model based on the Wan2.2 model backbone.**
-- [ ] **Release WSA-Large weights and benchmark results.**
+- [ ] Provide the training and evaluation codes on **RoboChallenge2.0**.
+- [ ] Release **WSA1.5**, our **next-generation foundation model**, pretrained on **larger and more diverse datasets** with **memory capabilities** for long-horizon robotic tasks.
+
 
 ## Table of Contents
 - [Framework](#framework)
@@ -83,9 +88,9 @@ and 3D-aware **action generation**.
 
 ---
 🤖 Result on RoboTwin 2.0 randomized setting, averaged over 50 simulated aloha manipulation tasks:
-| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA-Base** | **WSA-Large** |
+| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA-B** | **WSA-L** |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | **92.70%** | **93.14%** |
+| Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | 92.70% | **93.14%** |
 
 ## Repository Layout
 
@@ -98,7 +103,8 @@ evaluation/
   Real_Piper_Example/    Piper real-robot serving/client example
   Real_Lift2_Example/    Lift2 real-robot serving/client example
 launch/
-  wsa_base_*.sh          WSA pretraining and fine-tuning scripts
+  wsa_base_*.sh          WSA-B pretraining and fine-tuning scripts
+  wsa_large_*.sh         WSA-L pretraining and fine-tuning scripts
   supported_methods/     RoboTwin fine-tuning scripts for comparison methods
 src/lerobot/             LeRobot-based training, dataset, and policy code
 third_party/             Git submodules for external projects
@@ -218,7 +224,7 @@ adapted to your own hardware. The released checkpoints were evaluated on `NVIDIA
 All WSA training scripts are under `launch/`.
 For fine-tuning, initialize from the released base pretrained checkpoint with
 `POLICY_INIT_PATH=zaleni/WSA-Base`.
-Training used `8 × NVIDIA H200 GPUs`.
+Training used `8x NVIDIA H200 GPUs`.
 
 ### RoboTwin Fine-tuning
 
@@ -297,8 +303,19 @@ python tools/compute_norm_stats_single.py \
 ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3 \
 EGODEX_LEROBOT_ROOT=/path/to/egodex_lerobot_v3 \
 DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats \
-WEIGHT_RULES_PATH=configs/wsa_base_pretrain_data_config.yaml \
+WEIGHT_RULES_PATH=configs/weight_rules_wsa_base_pretrain.yaml \
 bash launch/wsa_base_pretrain.sh
+```
+
+For WSA-Large multi-dataset pretraining, prepare per-embodiment stats and use
+the WSA-Large launch script:
+
+```bash
+bash tools/wsa_large_compute_pretrain_norm_stats.sh
+
+DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats \
+WEIGHT_RULES_PATH=configs/weight_rules_wsa_large_pretrain.yaml \
+bash launch/wsa_large_pretrain.sh
 ```
 
 Some other policies are also supported by this repository, training scripts are available in

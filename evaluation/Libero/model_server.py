@@ -760,7 +760,8 @@ class WSALargeLiberoPolicy:
         if self.args.text_embed_cache_dir is not None and str(self.args.text_embed_cache_dir).strip():
             return Path(self.args.text_embed_cache_dir).expanduser()
         new_cache_dir = REPO_ROOT / "outputs" / WSA_LARGE / "text_embeds" / "libero"
-        return new_cache_dir
+        legacy_cache_dir = REPO_ROOT / "outputs" / "MagicBot_R0" / "text_embeds" / "libero"
+        return new_cache_dir if new_cache_dir.is_dir() else legacy_cache_dir
 
     def _build_state_normalizer(self) -> tuple[SingleFieldLinearNormalizer, str]:
         stats_candidates: list[Path] = []
@@ -832,6 +833,7 @@ class WSALargeLiberoPolicy:
                 "Missing WSA_Large cached text embedding for prompt. "
                 f"Expected {cache_path}. "
                 "Either precompute the cache under `outputs/WSA_Large/text_embeds/libero` "
+                "(legacy `outputs/MagicBot_R0/text_embeds/libero` is also checked), "
                 "or set LOAD_TEXT_ENCODER=true to encode prompts on the fly."
             )
 

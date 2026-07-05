@@ -30,9 +30,17 @@ MASK_MAPPING = {
     "ARX5": make_bool_mask(6, -1),
     "FRANKA": make_bool_mask(7, -2),
     "DOS-W1": make_bool_mask(6, -1, 6, -1),
+    "fourier_gr1_arms_waist": make_bool_mask(29),
+    "GR1": make_bool_mask(29),
+    "gr1": make_bool_mask(29),
     # custom real robot
     "real_lift2": make_bool_mask(6, -1, 6, -1),
     "real_piper": make_bool_mask(6, -1),
+    "robotwin_arx5": make_bool_mask(6, -1, 6, -1),
+    "ARX-X5": make_bool_mask(6, -1, 6, -1),
+    "RoboTwin-ARX5": make_bool_mask(6, -1, 6, -1),
+    # RoboCasa
+    "PandaOmron": make_bool_mask(7),
 }
 
 LIBERO_FRANKA_MASK = make_bool_mask(7, -1)
@@ -264,6 +272,16 @@ FEATURE_MAPPING["real_piper"] = {
         "action",
     ],
 }
+FEATURE_MAPPING["robotwin_arx5"] = {
+    OBS_STATE: [
+        "observation.state",
+    ],
+    ACTION: [
+        "action",
+    ],
+}
+FEATURE_MAPPING["ARX-X5"] = FEATURE_MAPPING["robotwin_arx5"]
+FEATURE_MAPPING["RoboTwin-ARX5"] = FEATURE_MAPPING["robotwin_arx5"]
 FEATURE_MAPPING["DOS-W1"] = {
     OBS_STATE: [
         "observation.state",
@@ -273,6 +291,25 @@ FEATURE_MAPPING["DOS-W1"] = {
     ],
 }
 FEATURE_MAPPING["ALOHA_STARVLA"] = FEATURE_MAPPING["ALOHA"]
+FOURIER_GR1_ARMS_WAIST_FEATURE_MAPPING = {
+    OBS_STATE: [
+        "state.left_arm",
+        "state.right_arm",
+        "state.left_hand",
+        "state.right_hand",
+        "state.waist",
+    ],
+    ACTION: [
+        "action.left_arm",
+        "action.right_arm",
+        "action.left_hand",
+        "action.right_hand",
+        "action.waist",
+    ],
+}
+FEATURE_MAPPING["fourier_gr1_arms_waist"] = FOURIER_GR1_ARMS_WAIST_FEATURE_MAPPING
+FEATURE_MAPPING["GR1"] = FOURIER_GR1_ARMS_WAIST_FEATURE_MAPPING
+FEATURE_MAPPING["gr1"] = FOURIER_GR1_ARMS_WAIST_FEATURE_MAPPING
 
 
 IMAGE_MAPPING = dict(
@@ -392,6 +429,32 @@ IMAGE_MAPPING["real_piper"] = {
     "observation.images.head": f"{OBS_IMAGES}.image0",
     "observation.images.left": f"{OBS_IMAGES}.image1",
 }
+IMAGE_MAPPING["robotwin_arx5"] = {
+    "observation.images.head": f"{OBS_IMAGES}.image0",
+    "observation.images.left": f"{OBS_IMAGES}.image1",
+    "observation.images.right": f"{OBS_IMAGES}.image2",
+}
+IMAGE_MAPPING["ARX-X5"] = IMAGE_MAPPING["robotwin_arx5"]
+IMAGE_MAPPING["RoboTwin-ARX5"] = IMAGE_MAPPING["robotwin_arx5"]
+FOURIER_GR1_ARMS_WAIST_IMAGE_MAPPING = {
+    "video.ego_view": f"{OBS_IMAGES}.image0",
+}
+IMAGE_MAPPING["fourier_gr1_arms_waist"] = FOURIER_GR1_ARMS_WAIST_IMAGE_MAPPING
+IMAGE_MAPPING["GR1"] = FOURIER_GR1_ARMS_WAIST_IMAGE_MAPPING
+IMAGE_MAPPING["gr1"] = FOURIER_GR1_ARMS_WAIST_IMAGE_MAPPING
+FEATURE_MAPPING["PandaOmron"] = {
+    OBS_STATE: [
+        "observation.state",
+    ],
+    ACTION: [
+        "action",
+    ],
+}
+IMAGE_MAPPING["PandaOmron"] = {
+    "observation.images.cam_high": f"{OBS_IMAGES}.image0",
+    "observation.images.cam_left": f"{OBS_IMAGES}.image1",
+    "observation.images.cam_right": f"{OBS_IMAGES}.image2",
+}
 
 
 def _feature_key_set(feature_keys):
@@ -402,9 +465,40 @@ def _feature_key_set(feature_keys):
     return set(feature_keys)
 
 
+def _feature_dim(feature_keys, key):
+    if not isinstance(feature_keys, Mapping):
+        return None
+    feature = feature_keys.get(key)
+    if not isinstance(feature, Mapping):
+        return None
+    shape = feature.get("shape")
+    if isinstance(shape, int):
+        return int(shape)
+    if isinstance(shape, (list, tuple)) and shape:
+        return int(shape[0])
+    return None
+
+
 def infer_embodiment_variant(robot_type, feature_keys=None):
     resolved_robot_type = robot_type
     keys = _feature_key_set(feature_keys)
+
+    if keys is not None:
+        robocasa_gr1_keys = {
+            "video.ego_view",
+            "state.left_arm",
+            "state.right_arm",
+            "state.left_hand",
+            "state.right_hand",
+            "state.waist",
+            "action.left_arm",
+            "action.right_arm",
+            "action.left_hand",
+            "action.right_hand",
+            "action.waist",
+        }
+        if robocasa_gr1_keys.issubset(keys):
+            resolved_robot_type = "fourier_gr1_arms_waist"
 
     # RoboTwin and RoboChallenge both commonly use robot_type="aloha", but
     # their camera keys differ. Resolve the RoboChallenge LeRobot-v3 schema to
@@ -442,16 +536,27 @@ def infer_embodiment_variant(robot_type, feature_keys=None):
         if robochallenge_ur5_keys.issubset(keys):
             resolved_robot_type = "UR5"
 
+    if robot_type in {"robotwin_arx5", "ARX-X5", "RoboTwin-ARX5"}:
+        resolved_robot_type = "robotwin_arx5"
+
+    arx5_head_left_right_keys = {
+        "observation.state",
+        "action",
+        "observation.images.head",
+        "observation.images.left",
+        "observation.images.right",
+    }
+
     if robot_type == "arx5" and keys is not None:
-        robochallenge_arx5_keys = {
-            "observation.state",
-            "action",
-            "observation.images.head",
-            "observation.images.left",
-            "observation.images.right",
-        }
-        if robochallenge_arx5_keys.issubset(keys):
-            resolved_robot_type = "ARX5"
+        if arx5_head_left_right_keys.issubset(keys):
+            action_dim = _feature_dim(feature_keys, "action")
+            resolved_robot_type = "robotwin_arx5" if action_dim == 14 else "ARX5"
+
+    if robot_type == "ARX5" and keys is not None:
+        if arx5_head_left_right_keys.issubset(keys):
+            action_dim = _feature_dim(feature_keys, "action")
+            if action_dim == 14:
+                resolved_robot_type = "robotwin_arx5"
 
     if robot_type in {"dos_w1", "dos-w1", "DOS-W1"} and keys is not None:
         robochallenge_w1_keys = {

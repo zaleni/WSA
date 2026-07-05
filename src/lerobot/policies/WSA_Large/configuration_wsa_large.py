@@ -120,6 +120,9 @@ def _percent_aligned_future_3d_query_layers(
 # Compatibility aliases for old development checkpoints/configs.
 @DatasetConfig.register_subclass("TBot_SA1_Wan")
 @DatasetConfig.register_subclass("tbot_sa1_wan")
+@DatasetConfig.register_subclass("magicbot-r0")
+@DatasetConfig.register_subclass("magicbot_r0")
+@DatasetConfig.register_subclass("MagicBot_R0")
 @dataclass
 class WSALargeDatasetConfig(DatasetConfig):
     _canonical_type: ClassVar[str] = WSA_LARGE
@@ -243,6 +246,9 @@ class WSALargeDatasetConfig(DatasetConfig):
 # Compatibility aliases for old development checkpoints/configs.
 @PreTrainedConfig.register_subclass("TBot_SA1_Wan")
 @PreTrainedConfig.register_subclass("tbot_sa1_wan")
+@PreTrainedConfig.register_subclass("magicbot-r0")
+@PreTrainedConfig.register_subclass("magicbot_r0")
+@PreTrainedConfig.register_subclass("MagicBot_R0")
 @dataclass
 class WSALargeConfig(PreTrainedConfig):
     _canonical_type: ClassVar[str] = WSA_LARGE
@@ -332,15 +338,21 @@ class WSALargeConfig(PreTrainedConfig):
         super().__post_init__()
         variant_aliases = {
             "wsa_large": "wsa_large",
+            "wsa_large_joint": "wsa_large_joint",
             "WSA_Large": "wsa_large",
+            "WSA_Large_joint": "wsa_large_joint",
             "tbot_sa1_wan": "wsa_large",
+            "tbot_sa1_wan_joint": "wsa_large_joint",
             "TBot_SA1_Wan": "wsa_large",
+            "TBot_SA1_Wan_joint": "wsa_large_joint",
+            "magicbot_r0": "wsa_large",
+            "magicbot_r0_joint": "wsa_large_joint",
         }
         self.variant = variant_aliases.get(self.variant, self.variant)
-        if self.variant not in {"wsa_large"}:
+        if self.variant not in {"wsa_large", "wsa_large_joint"}:
             raise ValueError(
                 f"Unsupported WSA_Large variant '{self.variant}'. "
-                "Expected one of: wsa_large."
+                "Expected one of: wsa_large, wsa_large_joint."
             )
         if self.video_dit_config is None:
             self.video_dit_config = _default_video_dit_config(self.action_dim)
