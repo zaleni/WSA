@@ -1,20 +1,20 @@
-<h1 align="center">WSA: a 3D-Centric World-Spatial-Action Model<br>for Generalizable Robot Control</h1>
+<h1 align="center">WSA: A 3D-Centric World-Spatial-Action Model<br>for Generalizable Robot Control</h1>
 
 <p align="center">
-  <img src="assets/WSA_logo.png" alt="WSA" width="280">
+  <img src="assets/WSA_logo.png" alt="WSA" width="300">
 </p>
 
 <p align="center">
-  a <strong>World-Spatial-Action</strong> embodied
-  foundation model that unifies instruction-aligned 2D visual planning,
+  An embodied foundation model that introduces <strong>World-Spatial-Action</strong> modeling
+  to unify instruction-aligned 2D visual planning,
   action-conditioned 3D world modeling, and 3D-aware action generation.
 </p>
 
 <p align="center">
-  <a href="https://zaleni.github.io/WSA/"><img src="https://img.shields.io/badge/Project%20Page-Website-2EA44F?logo=googlechrome&logoColor=ffffff" alt="Project page"></a>
+  <a href="https://zaleni.github.io/WSA1/"><img src="https://img.shields.io/badge/Project%20Page-Website-2EA44F?logo=googlechrome&logoColor=ffffff" alt="Project page"></a>
   <a href="https://github.com/zaleni/WSA"><img src="https://img.shields.io/badge/Repository-GitHub-181717?logo=github" alt="GitHub repository"></a>
-  <a href="https://zaleni.github.io/WSA/assets/paper/manuscript.pdf"><img src="https://img.shields.io/badge/Paper-PDF-B31B1B?logo=adobeacrobatreader&logoColor=ffffff" alt="Paper PDF"></a>
-  <a href="https://huggingface.co/collections/zaleni/wsa"><img src="https://img.shields.io/badge/Models-HuggingFace-FFD21E?logo=huggingface&logoColor=D9D9D9" alt="Hugging Face models"></a>
+  <a href="https://arxiv.org/abs/TO_BE_ADDED"><img src="https://img.shields.io/badge/Paper-arXiv-A6D4FA?logo=arxiv&logoColor=111111" alt="Paper arXiv"></a>
+  <a href="https://huggingface.co/collections/zaleni/wsa1"><img src="https://img.shields.io/badge/Models-HuggingFace-FFD21E?logo=huggingface&logoColor=D9D9D9" alt="Hugging Face models"></a>
   <a href="https://robochallenge.ai/competition/cvpr"><img src="https://img.shields.io/badge/%F0%9F%8F%86%20Leaderboard-RoboChallenge-C99A00" alt="RoboChallenge leaderboard"></a>
 </p>
 
@@ -28,22 +28,21 @@
 
 ## 🗞️ News
 
-- [2026-05-18]: 🏆 Our fully open-source WSA model **WSA ranked 4th/100+ teams on the [RoboChallenge CVPR 2026 leaderboard](https://robochallenge.ai/competition/cvpr).** (Team: MagicBot)
-- [2026-05-31]: 🎉 Release of WSA training, evaluation, and inference code.
-- [2026-05-31]: 🤗 Released the WSA paper and the WSA Hugging Face
-  model collection with Base, RoboTwin, and LIBERO models.
+- [2026-05-18]: 🏆 **WSA ranked 4th out of 100+ teams on the [RoboChallenge CVPR 2026 leaderboard](https://robochallenge.ai/competition/cvpr)** with fully open-source weights and code. (Team: MagicBot)
+- [2026-05-31]: 🎉 Released the WSA training, evaluation, and inference code.
+- [2026-05-31]: 🤗 Released the WSA Hugging Face model collection, including
+  Base, RoboTwin, and LIBERO checkpoints.
 
 <a id="todo-list"></a>
 
 ## TODO List
 
-- [x] Provide RoboTwin, LIBERO, and real world robot example inference workflows.
-- [x] Release WSA policy code and finetuning scripts.
+- [x] Provide RoboTwin, LIBERO, and real-world robot example inference workflows.
+- [x] Release WSA policy code and fine-tuning scripts.
 - [x] Release WSA pretraining scripts.
-- [ ] Release paper on arxiv and citation.
-- [ ] Release results and models on more benchmarks.
-- [ ] **[Coming soon] Release WSA Large model code, a 6B WSA model using Wan2.2 video model as backbone.**
-- [ ] **Release WSA Large model weights and results.**
+- [ ] Release the arXiv paper and citation.
+- [ ] **[Coming soon] Release the WSA-Large code for the 6B WSA model based on the Wan2.2 model backbone.**
+- [ ] **Release WSA-Large weights and benchmark results.**
 
 ## Table of Contents
 - [Framework](#framework)
@@ -52,8 +51,8 @@
 - [Model Zoo](#model-zoo)
 - [Inference](#inference)
 - [Training](#training)
-  - [RoboTwin Finetuning](#robotwin-finetuning)
-  - [Finetuning example](#finetuning-example)
+  - [RoboTwin Fine-tuning](#robotwin-fine-tuning)
+  - [Fine-tuning example](#fine-tuning-example)
   - [Multi-Dataset Pretraining](#multi-dataset-pretraining)
 - [Acknowledgments](#acknowledgments)
 - [Citation](#citation)
@@ -71,20 +70,20 @@ and 3D-aware **action generation**.
 
 ### 🌟 Highlights:
 
-- **Unified WSA Modeling:** WSA modeling unifies semantic understanding, 3D world modeling, and physical
+- **Unified World-Spatial-Action Modeling:** WSA unifies semantic understanding, 3D world modeling, and physical
   execution.
-- **Bidirectional 3D Causality:** Bidirectional 3D causality learns both action-conditioned scene dynamics and
+- **Bidirectional 3D Causality:** WSA learns both action-conditioned scene dynamics and
   3D inverse dynamics.
-- **Mixture-of-Transformers:** Mixture-of-Transformers coordinates 2D planning, 3D prediction, and 3D action
+- **Mixture-of-Transformers:** WSA coordinates 2D planning, 3D prediction, and 3D action
   generation with shared dependency rules.
-- **Data-Efficient Pretraining:** Data-efficient pretraining on 6,000 demonstration hours yields strong
+- **Data-Efficient Pretraining:** Pretraining on 6,000 demonstration hours yields strong
   simulation and real-world manipulation performance.
 - **Superior Performance:** State-of-the-art results across simulation
   and real-world robot manipulation tasks, achieved by our open-source model.
 
 ---
 🤖 Result on RoboTwin 2.0 randomized setting, averaged over 50 simulated aloha manipulation tasks:
-| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA** |
+| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA-Base** |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | **92.70%** |
 
@@ -99,8 +98,8 @@ evaluation/
   Real_Piper_Example/    Piper real-robot serving/client example
   Real_Lift2_Example/    Lift2 real-robot serving/client example
 launch/
-  wsa_base_*.sh          WSA pretraining and finetuning scripts
-  supported_methods/     RoboTwin finetuning scripts for comparison methods
+  wsa_base_*.sh          WSA pretraining and fine-tuning scripts
+  supported_methods/     RoboTwin fine-tuning scripts for comparison methods
 src/lerobot/             LeRobot-based training, dataset, and policy code
 third_party/             Git submodules for external projects
 tools/                   support scripts used by training workflows
@@ -136,7 +135,8 @@ TRANSFORMERS_DIR=${CONDA_PREFIX}/lib/python3.10/site-packages/transformers/
 cp -r src/lerobot/policies/WSA_Base/transformers_replace/models ${TRANSFORMERS_DIR}
 ```
 
-Evaluation in the RoboTwin 2.0 and LIBERO additionally requires their official codebases. These dependencies are included as Git submodules under `third_party/`. To initialize them, run:
+RoboTwin 2.0 and LIBERO evaluation also require their official codebases.
+These dependencies are included as Git submodules under `third_party/`. To initialize them, run:
 ```bash
 git submodule update --init --recursive
 ```
@@ -149,12 +149,12 @@ pip install tyro matplotlib mediapy websockets msgpack
 
 | Name | Type | Usage |
 | --- | --- | --- |
-| [WSA Base](https://huggingface.co/zaleni/WSA-Base) | Pretrained policy | WSA Base pretrained model for downstream finetuning |
-| [WSA Base RoboTwin](https://huggingface.co/zaleni/WSA-RoboTwin) | RoboTwin finetuned model | Fine-tuned from WSA Base for RoboTwin evaluation and inference |
-| [WSA Base LIBERO](https://huggingface.co/zaleni/WSA-LIBERO) | LIBERO finetuned model | Fine-tuned from WSA Base for LIBERO evaluation and inference |
+| [WSA-Base](https://huggingface.co/zaleni/WSA-Base) | Pretrained policy | WSA-Base pretrained model for downstream finetuning |
+| [WSA-Base RoboTwin](https://huggingface.co/zaleni/WSA-Base-RoboTwin) | RoboTwin finetuned model | Fine-tuned from WSA-Base for RoboTwin evaluation and inference |
+| [WSA-Base LIBERO](https://huggingface.co/zaleni/WSA-Base-LIBERO) | LIBERO finetuned model | Fine-tuned from WSA-Base for LIBERO evaluation and inference |
 
 All released models are available in the
-[WSA Hugging Face collection](https://huggingface.co/collections/zaleni/wsa).
+[WSA Hugging Face collection](https://huggingface.co/collections/zaleni/wsa1).
 
 For action evaluation with the released model, use
 `DISABLE_DA3_TEACHER_FOR_EVAL=true`.
@@ -168,20 +168,20 @@ For action evaluation with the released model, use
   [evaluation/Real_Lift2_Example/README.md](evaluation/Real_Lift2_Example/README.md)
 
 The real-robot examples split inference into a GPU policy server and a
-robot-side client. They are intended as reference integrations that you can
-adapt to your own hardware. Our evaluation results were conducted on `NVIDIA GeForce RTX 4090 GPUs`.
+robot-side client. They are intended as reference integrations that can be
+adapted to your own hardware. The released checkpoints were evaluated on `NVIDIA GeForce RTX 4090 GPUs`.
 
 ## Training
 
-All WSA training scripts live directly under `launch/`.
-For finetuning, initialize from the released base pretrained model with
+All WSA training scripts are under `launch/`.
+For fine-tuning, initialize from the released base pretrained checkpoint with
 `POLICY_INIT_PATH=zaleni/WSA-Base`.
-We trained models on `8 × NVIDIA H200 GPUs`.
+Training used `8 × NVIDIA H200 GPUs`.
 
-### RoboTwin Finetuning
+### RoboTwin Fine-tuning
 
 `launch/wsa_base_finetune_robotwin.sh` discovers all LeRobot-v3 datasets under
-`ROBOTWIN_ROOT` and trains over them as a multi-dataset run.
+`ROBOTWIN_ROOT` and trains on them as a multi-dataset run.
 
 Download the RoboTwin LeRobot-v3.0 dataset from Hugging Face and point
 `ROBOTWIN_ROOT` to the local download directory:
@@ -223,7 +223,7 @@ DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats \
 bash launch/wsa_base_finetune_robotwin.sh
 ```
 
-### Finetuning example
+### Fine-tuning example
 
 Use this script for a single LeRobot-v3.0 dataset. It defaults to delta actions.
 
