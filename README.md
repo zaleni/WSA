@@ -83,9 +83,9 @@ and 3D-aware **action generation**.
 
 ---
 🤖 Result on RoboTwin 2.0 randomized setting, averaged over 50 simulated aloha manipulation tasks:
-| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA-Base** |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | **92.70%** |
+| Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA-Base** | **WSA-Large** |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | **92.70%** | **93.14%** |
 
 ## Repository Layout
 
@@ -147,11 +147,53 @@ pip install tyro matplotlib mediapy websockets msgpack
 
 ## Model Zoo
 
-| Name | Type | Usage |
-| --- | --- | --- |
-| [WSA-Base](https://huggingface.co/zaleni/WSA-Base) | Pretrained policy | WSA-Base pretrained model for downstream finetuning |
-| [WSA-Base RoboTwin](https://huggingface.co/zaleni/WSA-Base-RoboTwin) | RoboTwin finetuned model | Fine-tuned from WSA-Base for RoboTwin evaluation and inference |
-| [WSA-Base LIBERO](https://huggingface.co/zaleni/WSA-Base-LIBERO) | LIBERO finetuned model | Fine-tuned from WSA-Base for LIBERO evaluation and inference |
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Usage</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td colspan="3"><strong>WSA-Base (3B)</strong>     ~Backbone: <a href="https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct">Qwen3-VL-2B</a></sub></td>
+    </tr>
+    <tr>
+      <td><a href="https://huggingface.co/zaleni/WSA-Base">WSA-Base</a></td>
+      <td>Pretrained policy</td>
+      <td>WSA-Base pretrained model for downstream finetuning</td>
+    </tr>
+    <tr>
+      <td><a href="https://huggingface.co/zaleni/WSA-Base-RoboTwin">WSA-Base RoboTwin</a></td>
+      <td>RoboTwin finetuned model</td>
+      <td>Fine-tuned from WSA-Base for RoboTwin evaluation and inference</td>
+    </tr>
+    <tr>
+      <td><a href="https://huggingface.co/zaleni/WSA-Base-LIBERO">WSA-Base LIBERO</a></td>
+      <td>LIBERO finetuned model</td>
+      <td>Fine-tuned from WSA-Base for LIBERO evaluation and inference</td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>WSA-Large (6B)</strong>   ~Backbone: <a href="https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B">Wan2.2-TI2V-5B</a></td>
+    </tr>
+    <tr>
+      <td><a href="https://huggingface.co/zaleni/WSA-Large">WSA-Large</a></td>
+      <td>Pretrained policy</td>
+      <td>WSA-Large pretrained model for downstream finetuning</td>
+    </tr>
+    <tr>
+      <td><a href="https://huggingface.co/zaleni/WSA-Large-RoboTwin">WSA-Large RoboTwin</a></td>
+      <td>RoboTwin finetuned model</td>
+      <td>Fine-tuned from WSA-Large for RoboTwin evaluation and inference</td>
+    </tr>
+    <tr>
+      <td><a href="https://huggingface.co/zaleni/WSA-Large-LIBERO">WSA-Large LIBERO</a></td>
+      <td>LIBERO finetuned model</td>
+      <td>Fine-tuned from WSA-Large for LIBERO evaluation and inference</td>
+    </tr>
+  </tbody>
+</table>
 
 All released models are available in the
 [WSA Hugging Face collection](https://huggingface.co/collections/zaleni/wsa1).
