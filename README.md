@@ -13,7 +13,7 @@
 <p align="center">
   <a href="https://zaleni.github.io/WSA1/"><img src="https://img.shields.io/badge/Project%20Page-Website-2EA44F?logo=googlechrome&logoColor=ffffff" alt="Project page"></a>
   <a href="https://github.com/zaleni/WSA"><img src="https://img.shields.io/badge/Repository-GitHub-181717?logo=github" alt="GitHub repository"></a>
-  <a href="https://arxiv.org/abs/TO_BE_ADDED"><img src="https://img.shields.io/badge/Paper-arXiv-A6D4FA?logo=arxiv&logoColor=111111" alt="Paper arXiv"></a>
+  <a href="https://arxiv.org/abs/2607.03941"><img src="https://img.shields.io/badge/Paper-arXiv-A6D4FA?logo=arxiv&logoColor=111111" alt="Paper arXiv"></a>
   <a href="https://huggingface.co/collections/zaleni/wsa1"><img src="https://img.shields.io/badge/Models-HuggingFace-FFD21E?logo=huggingface&logoColor=D9D9D9" alt="Hugging Face models"></a>
   <a href="https://robochallenge.ai/competition/cvpr"><img src="https://img.shields.io/badge/%F0%9F%8F%86%20Leaderboard-RoboChallenge-C99A00" alt="RoboChallenge leaderboard"></a>
 </p>
@@ -44,7 +44,7 @@
 - [x] Release WSA pretraining scripts.
 - [x] **Release the WSA-Large code for the 6B WSA model based on the Wan2.2 model backbone.**
 - [x] **Release WSA-Large weights and benchmark results.**
-- [ ] Release the arXiv paper and citation.
+- [x] Release the arXiv paper and citation.
 - [ ] Provide the training and evaluation codes on **RoboChallenge2.0**.
 - [ ] Release **WSA1.5**, our **next-generation foundation model**, pretrained on **larger and more diverse datasets** with **memory capabilities** for long-horizon robotic tasks.
 
@@ -340,7 +340,20 @@ WSA builds on the excellent work of the
 ablation runs easier from the same codebase.
 
 ## Citation
-Coming Soon.
+
+If you find WSA useful in your research, please cite our [paper](https://arxiv.org/abs/2607.03941):
+
+```bibtex
+@article{jiang2026wsa1,
+  title         = {{WSA}$_1$: a 3D-Centric World-Spatial-Action Model for Generalizable Robot Control},
+  author        = {Jiang, Jiahao and Zhang, Jianing and Yin, Zhenhan and Chen, Ruidong and Wang, Sen and Yu, Zhaoshu and Zeng, Pengpeng and Cao, Xiaofeng and Wang, Xuanhan and Song, Jingkuan and Shen, Heng Tao},
+  journal       = {arXiv preprint arXiv:2607.03941},
+  year          = {2026},
+  doi           = {10.48550/arXiv.2607.03941},
+  url           = {https://arxiv.org/abs/2607.03941}
+}
+```
+
 <p align="center">
   <img src="assets/tongji-logo.png" alt="Tongji University" height="56">
   &nbsp;&nbsp;&nbsp;&nbsp;
