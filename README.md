@@ -237,21 +237,11 @@ The real-robot examples split inference into a GPU policy server and a
 robot-side client. They are intended as reference integrations that can be
 adapted to your own hardware. The released checkpoints were evaluated on `NVIDIA GeForce RTX 4090 GPUs`.
 
-For a one-task RoboTwin smoke test with the released WSA-Large checkpoint:
-
-```bash
-PRETRAINED_CKPT=zaleni/WSA-Large-RoboTwin \
-GPU_IDS=0 \
-TASK_COUNT=1 \
-TEST_NUM=10 \
-bash evaluation/RoboTwin/eval_wsa_large.sh
-```
-
-The WSA-Large evaluator loads its text encoder by default so that it can accept
-plain-text instructions. For repeated deployment, you can instead precompute
-the exact task prompts with `tools/precompute_text_embeds.py` and run with
-`WSA_LARGE_LOAD_TEXT_ENCODER=false`; the benchmark and real-robot READMEs show
-the supported entrypoints.
+> Note: The WSA-Large evaluator loads its text encoder by default so that it
+> can accept plain-text instructions. For repeated deployment, you can instead
+> precompute the exact task prompts with `tools/precompute_text_embeds.py` and
+> run with `WSA_LARGE_LOAD_TEXT_ENCODER=false`; the benchmark and real-robot
+> READMEs show the supported entrypoints.
 
 ## Training
 
