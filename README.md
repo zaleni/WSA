@@ -54,10 +54,12 @@
 - [Repository Layout](#repository-layout)
 - [Installation](#installation)
 - [Model Zoo](#model-zoo)
+- [Choosing a Model](#choosing-a-model)
 - [Inference](#inference)
 - [Training](#training)
   - [RoboTwin Fine-tuning](#robotwin-fine-tuning)
   - [Fine-tuning example](#fine-tuning-example)
+  - [WSA-Large Fine-tuning](#wsa-large-fine-tuning)
   - [Multi-Dataset Pretraining](#multi-dataset-pretraining)
 - [Acknowledgments](#acknowledgments)
 - [Citation](#citation)
@@ -163,7 +165,7 @@ pip install tyro matplotlib mediapy websockets msgpack
   </thead>
   <tbody>
     <tr>
-      <td colspan="3"><strong>WSA-Base (3B)</strong>     ~Backbone: <a href="https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct">Qwen3-VL-2B</a></sub></td>
+      <td colspan="3"><strong>WSA-Base (3B)</strong>     ~Backbone: <a href="https://huggingface.co/Qwen/Qwen3-VL-2B-Instruct">Qwen3-VL-2B</a></td>
     </tr>
     <tr>
       <td><a href="https://huggingface.co/zaleni/WSA-Base">WSA-Base</a></td>
@@ -207,9 +209,25 @@ All released models are available in the
 For action evaluation with the released model, use
 `DISABLE_DA3_TEACHER_FOR_EVAL=true`.
 
+## Choosing a Model
+
+| | WSA-Base | WSA-Large |
+| --- | --- | --- |
+| Size and backbone | 3B, Qwen3-VL-2B | 6B, Wan2.2-TI2V-5B |
+| Recommended use | Lower-cost fine-tuning and deployment | Best released benchmark performance and full WSA modeling |
+| Text conditioning | Qwen3-VL processor | Wan text encoder, or precomputed text embeddings to reduce training memory |
+| Downstream checkpoints | RoboTwin and LIBERO | RoboTwin and LIBERO |
+| Main launchers | `launch/wsa_base_*.sh` | `launch/wsa_large_*.sh` |
+
+Use the task-specific checkpoint for evaluation. The plain `WSA-Base` and
+`WSA-Large` checkpoints are pretrained policies intended for downstream
+fine-tuning, while the `*-RoboTwin` and `*-LIBERO` checkpoints are ready for
+their corresponding benchmark adapters.
+
 ## Inference
 
 - RoboTwin: [evaluation/RoboTwin/README.md](evaluation/RoboTwin/README.md)
+- LIBERO: [evaluation/Libero/README.md](evaluation/Libero/README.md)
 - Real Piper example:
   [evaluation/Real_Piper_Example/README.md](evaluation/Real_Piper_Example/README.md)
 - Real Lift2 example:
@@ -219,11 +237,28 @@ The real-robot examples split inference into a GPU policy server and a
 robot-side client. They are intended as reference integrations that can be
 adapted to your own hardware. The released checkpoints were evaluated on `NVIDIA GeForce RTX 4090 GPUs`.
 
+For a one-task RoboTwin smoke test with the released WSA-Large checkpoint:
+
+```bash
+PRETRAINED_CKPT=zaleni/WSA-Large-RoboTwin \
+GPU_IDS=0 \
+TASK_COUNT=1 \
+TEST_NUM=10 \
+bash evaluation/RoboTwin/eval_wsa_large.sh
+```
+
+The WSA-Large evaluator loads its text encoder by default so that it can accept
+plain-text instructions. For repeated deployment, you can instead precompute
+the exact task prompts with `tools/precompute_text_embeds.py` and run with
+`WSA_LARGE_LOAD_TEXT_ENCODER=false`; the benchmark and real-robot READMEs show
+the supported entrypoints.
+
 ## Training
 
 All WSA training scripts are under `launch/`.
-For fine-tuning, initialize from the released base pretrained checkpoint with
-`POLICY_INIT_PATH=zaleni/WSA-Base`.
+For fine-tuning, initialize from the matching released pretrained checkpoint:
+`POLICY_INIT_PATH=zaleni/WSA-Base` or
+`POLICY_INIT_PATH=zaleni/WSA-Large`.
 Training used `8x NVIDIA H200 GPUs`.
 
 ### RoboTwin Fine-tuning
@@ -293,6 +328,56 @@ python tools/compute_norm_stats_single.py \
   --output_dir norm_stats
 ```
 
+### WSA-Large Fine-tuning
+
+WSA-Large additionally uses Wan text conditioning. The training launchers
+default to `LOAD_TEXT_ENCODER=false`, which keeps the text encoder out of the
+training process but requires a prompt-embedding cache. For RoboTwin, discover
+the datasets and build the cache first:
+
+```bash
+python tools/discover_robotwin_repos.py \
+  --robotwin-root /path/to/robotwin_lerobot_v3.0 \
+  --output-file robotwin_repo_ids.txt \
+  --require-three-cameras true
+
+python tools/precompute_text_embeds.py \
+  --repo-id-file robotwin_repo_ids.txt \
+  --text-embedding-cache-dir outputs/WSA_Large/text_embeds/robotwin \
+  --device cuda
+```
+
+Compute normalization statistics with the same action mode and horizon used by
+training:
+
+```bash
+python tools/compute_norm_stats_multi.py \
+  --repo_id_file robotwin_repo_ids.txt \
+  --action_mode delta \
+  --chunk_size 32 \
+  --num_workers 8 \
+  --output_path /path/to/norm_stats/aloha/delta/stats.json
+```
+
+Then fine-tune from the complete released WSA-Large checkpoint. Setting
+`SKIP_DIT_LOAD_FROM_PRETRAIN=true` tells the launcher to use the ActionDiT and
+Future3DExpert weights already contained in that checkpoint instead of asking
+for separately prepared expert-backbone files:
+
+```bash
+POLICY_INIT_PATH=zaleni/WSA-Large \
+ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3.0 \
+ACTION_TYPE=delta \
+NORMALIZATION_STATS_PATH=/path/to/norm_stats/aloha/delta/stats.json \
+TEXT_EMBED_CACHE_DIR=outputs/WSA_Large/text_embeds/robotwin \
+LOAD_TEXT_ENCODER=false \
+SKIP_DIT_LOAD_FROM_PRETRAIN=true \
+bash launch/wsa_large_finetune_robotwin.sh
+```
+
+For a simpler bring-up at the cost of loading the Wan text encoder during
+training, set `LOAD_TEXT_ENCODER=true` and omit `TEXT_EMBED_CACHE_DIR`.
+
 ### Multi-Dataset Pretraining
 
 `launch/wsa_base_pretrain.sh` can discover datasets from multiple roots:
@@ -308,12 +393,35 @@ bash launch/wsa_base_pretrain.sh
 ```
 
 For WSA-Large multi-dataset pretraining, prepare per-embodiment stats and use
-the WSA-Large launch script:
+the WSA-Large launch script. Unlike fine-tuning from the complete released
+checkpoint, pretraining requires the two expert-backbone initialization files.
+Generate them once before launching:
 
 ```bash
+python tools/preprocess_expert_backbones.py \
+  --expert both \
+  --action-output checkpoints/wsa_large/ActionDiT_linear_interp_Wan22_alphascale_1024hdim.pt \
+  --future-3d-output checkpoints/wsa_large/Future3DExpert_linear_interp_Wan22_alphascale_768hdim.pt \
+  --action-dim 24 \
+  --da3-num-views 3 \
+  --future-3d-tokens-per-view 144 \
+  --device cuda \
+  --dtype bfloat16
+
+ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3 \
+EGODEX_LEROBOT_ROOT=/path/to/egodex_lerobot_v3 \
+OUTPUT_STATS_ROOT=/path/to/norm_stats \
 bash tools/wsa_large_compute_pretrain_norm_stats.sh
 
+python tools/precompute_text_embeds.py \
+  --repo-id-file outputs/WSA_Large/_stats_repo_id_files/chunk32/all_datasets.txt \
+  --text-embedding-cache-dir outputs/WSA_Large/text_embeds/pretrain \
+  --device cuda
+
+ROBOTWIN_ROOT=/path/to/robotwin_lerobot_v3 \
+EGODEX_LEROBOT_ROOT=/path/to/egodex_lerobot_v3 \
 DATASET_EXTERNAL_STATS_ROOT=/path/to/norm_stats \
+TEXT_EMBED_CACHE_DIR=outputs/WSA_Large/text_embeds/pretrain \
 WEIGHT_RULES_PATH=configs/weight_rules_wsa_large_pretrain.yaml \
 bash launch/wsa_large_pretrain.sh
 ```

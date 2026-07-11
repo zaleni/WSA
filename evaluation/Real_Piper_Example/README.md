@@ -6,9 +6,13 @@ connection.
 
 ## Entry Points
 
-| Server | Robot client |
-| --- | --- |
-| `01_serve_wsa_base_real_piper_sync.sh` | `02_infer_wsa_base_real_piper_sync.sh` |
+| Model | Server | Robot client |
+| --- | --- | --- |
+| WSA-Base | `01_serve_wsa_base_real_piper_sync.sh` | `02_infer_wsa_base_real_piper_sync.sh` |
+| WSA-Large | `01_serve_wsa_large_real_piper_sync.sh` | `02_infer_wsa_large_real_piper_sync.sh` |
+
+The complete WSA-Large deployment checklist, including text-cache setup and ROS
+commands, is in [inference_wsa_large_piper.md](inference_wsa_large_piper.md).
 
 ## Shared Runtime
 
@@ -25,9 +29,11 @@ connection.
 - `ACTION_MODE`: keep this aligned with the checkpoint.
 - `INFER_HORIZON`: server-side chunk length.
 - `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH`,
-  `COSMOS_TOKENIZER_PATH_OR_NAME`: WSA assets.
+  `COSMOS_TOKENIZER_PATH_OR_NAME`: WSA-Base assets.
+- `WSA_LARGE_LOAD_TEXT_ENCODER` and `WSA_LARGE_TEXT_EMBED_CACHE_DIR`:
+  WSA-Large text-conditioning mode; see the WSA-Large checklist above.
 
-## Quick Start
+## WSA-Base Quick Start
 
 ```bash
 CHECKPOINT_DIR=/path/to/WSA/real_piper/checkpoints/last/pretrained_model \
@@ -36,7 +42,7 @@ ACTION_MODE=abs \
 INFER_HORIZON=50 \
 bash evaluation/Real_Piper_Example/01_serve_wsa_base_real_piper_sync.sh
 
-WS_HOST=<server-ip> \
+WS_HOST=192.168.1.10 \
 WS_PORT=8000 \
 bash evaluation/Real_Piper_Example/02_infer_wsa_base_real_piper_sync.sh
 ```

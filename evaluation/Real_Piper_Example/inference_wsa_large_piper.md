@@ -11,16 +11,16 @@ Run this on the GPU machine. The robot-side client below should connect to this
 machine's IP and port.
 
 ```bash
-cd ~/research/WSA
-conda activate wsa_base
+cd /path/to/WSA
+conda activate wsa
 
 # Simple bring-up path: load the text encoder and send plain text prompts.
 # For lower memory / faster startup, precompute the exact prompt first and switch
 # WSA_LARGE_LOAD_TEXT_ENCODER=false with WSA_LARGE_TEXT_EMBED_CACHE_DIR set.
 #
 python tools/precompute_text_embeds.py \
-  --text-embedding-cache-dir /home/jjhao/data/text_embeds \
-  --model-cache-dir /home/jjhao/data/model \
+  --text-embedding-cache-dir /path/to/text_embeds \
+  --model-cache-dir /path/to/model_cache \
   --override-instruction "Position red block, green block, and blue block from left to right in the specified sequence." \
   --context-len 128 \
   --device cuda
@@ -28,7 +28,7 @@ python tools/precompute_text_embeds.py \
 # Optional: set DIFFSYNTH_MODEL_BASE_PATH=/path/to/WSA_Large/model_cache
 # to keep Wan/T5/VAE files off the default ./checkpoints directory.
 
-CHECKPOINT_DIR=/home/jjhao/data/model/zaleni/6B-RankRGB-delta \
+CHECKPOINT_DIR=/path/to/wsa_large_real_piper_checkpoint \
 STATS_KEY=real_piper \
 ACTION_MODE=delta \
 DEVICE=cuda \
@@ -39,7 +39,7 @@ INFER_HORIZON=32 \
 DEFAULT_PROMPT="Position red block, green block, and blue block from left to right in the specified sequence." \
 RTC_ENABLED=false \
 WSA_LARGE_LOAD_TEXT_ENCODER=false \
-WSA_LARGE_TEXT_EMBED_CACHE_DIR=/home/jjhao/data/text_embeds \
+WSA_LARGE_TEXT_EMBED_CACHE_DIR=/path/to/text_embeds \
 WSA_LARGE_CONTEXT_LEN=128 \
 WSA_LARGE_SKIP_DIT_LOAD_FROM_PRETRAIN=true \
 WSA_LARGE_CONCAT_MULTI_CAMERA=horizontal \
@@ -89,7 +89,7 @@ conda activate deploy
 
 INIT_POS="-90885.0 38280.0 -47982.0 518.0 68317.0 1278.0 -2100.0"
 
-WS_HOST=10.60.45.31 \
+WS_HOST=192.168.1.10 \
 WS_PORT=9103 \
 TASK_PROMPT="Position red block, green block, and blue block from left to right in the specified sequence." \
 PUBLISH_RATE=24 \
@@ -112,8 +112,8 @@ EXPECTED_STATS_KEY=real_piper \
 bash evaluation/Real_Piper_Example/02_infer_wsa_large_real_piper_sync.sh
 ```
 
-If the GPU server is not `10.60.45.31`, only change `WS_HOST`. Keep
-`WS_PORT=8102` unless the server command in step 1 uses a different `PORT`.
+Set `WS_HOST` to the GPU server address. Keep `WS_PORT=9103` unless the server
+command in step 1 uses a different `PORT`.
 
 ## Useful checks
 

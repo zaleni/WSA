@@ -3,17 +3,18 @@
 This document provides instructions for reproducing our experimental results
 with [RoboTwin2.0](https://github.com/RoboTwin-Platform/RoboTwin).
 
-The main entry point is `eval_wsa_base.sh`, which runs WSA on the
-RoboTwin randomized 50-task benchmark. By default it loads the released
-`zaleni/WSA-RoboTwin` checkpoint; you can override the checkpoint, task
-range, episode count, and GPU allocation with environment variables.
+The `eval_wsa_base.sh` and `eval_wsa_large.sh` entrypoints run WSA on the
+RoboTwin randomized 50-task benchmark. By default they load the released
+`zaleni/WSA-Base-RoboTwin` and `zaleni/WSA-Large-RoboTwin` checkpoints,
+respectively. You can override the checkpoint, task range, episode count, and
+GPU allocation with environment variables.
 
 ## Introduction
 
 - `eval_wsa_base.sh`: maintained WSA-Base randomized 50-task evaluation
-  wrapper. It defaults to `PRETRAINED_CKPT=zaleni/WSA-RoboTwin`.
+  wrapper. It defaults to `PRETRAINED_CKPT=zaleni/WSA-Base-RoboTwin`.
 - `eval_wsa_large.sh`: WSA-Large delta-action randomized 50-task evaluation
-  wrapper.
+  wrapper. It defaults to `PRETRAINED_CKPT=zaleni/WSA-Large-RoboTwin`.
 - `inference.py`: shared RoboTwin evaluator called by the shell wrapper.
 - `eval_config.py`: resolves per-task `infer_horizon` and
   `binarize_gripper` from `configs/robotwin_eval_config.yaml`.
@@ -72,17 +73,17 @@ cd ../..
 ```
 
 
-For WSA, install `transformers==4.57.1` and patch the installed Qwen3-VL
+For WSA-Base, install `transformers==4.57.1` and patch the installed Qwen3-VL
 code with `src/lerobot/policies/WSA_Base/transformers_replace/models`.
 ```bash
 TRANSFORMERS_DIR=${CONDA_PREFIX}/lib/python3.10/site-packages/transformers/
 cp -r src/lerobot/policies/WSA_Base/transformers_replace/models ${TRANSFORMERS_DIR}
 ```
 
-## Quick Start
+## WSA-Base Quick Start
 
 ```bash
-PRETRAINED_CKPT=zaleni/WSA-RoboTwin \
+PRETRAINED_CKPT=zaleni/WSA-Base-RoboTwin \
 QWEN3_VL_PRETRAINED_PATH=Qwen/Qwen3-VL-2B-Instruct \
 QWEN3_VL_PROCESSOR_PATH=Qwen/Qwen3-VL-2B-Instruct \
 COSMOS_TOKENIZER_PATH_OR_NAME=nvidia/Cosmos-Tokenizer-CI8x8 \
@@ -93,10 +94,29 @@ MAX_JOBS_PER_GPU=2 \
 bash evaluation/RoboTwin/eval_wsa_base.sh
 ```
 
+## WSA-Large Quick Start
+
+Start with one task and a small episode count to verify the environment and
+model assets before launching the full benchmark:
+
+```bash
+PRETRAINED_CKPT=zaleni/WSA-Large-RoboTwin \
+GPU_IDS=0 \
+START_TASK_IDX=0 \
+TASK_COUNT=1 \
+TEST_NUM=10 \
+bash evaluation/RoboTwin/eval_wsa_large.sh
+```
+
+The released WSA-Large RoboTwin checkpoint uses delta actions. Its evaluation
+wrapper defaults to `WSA_LARGE_LOAD_TEXT_ENCODER=true`, so plain task
+instructions work without a precomputed text cache. Set `TASK_COUNT=50` and
+increase `GPU_IDS` only after the smoke test succeeds.
+
 ## Common Options
 
 - `PRETRAINED_CKPT`: checkpoint directory or Hugging Face model id. Defaults to
-  `zaleni/WSA-RoboTwin`.
+  the task-specific released checkpoint selected by the wrapper.
 - `GPU_IDS`: comma-separated GPUs used by the scheduler, for example `0,1`.
 - `MAX_JOBS_PER_GPU`: maximum parallel RoboTwin tasks per GPU. Lower this if
   memory is tight.
@@ -117,8 +137,11 @@ bash evaluation/RoboTwin/eval_wsa_base.sh
 - `DISABLE_DA3_TEACHER_FOR_EVAL`: keep this `true` for standard action
   evaluation without loading the 3D teacher.
 - `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH`, and
-  `COSMOS_TOKENIZER_PATH_OR_NAME`: override these only when using local copies
-  of the backbone, processor, or tokenizer.
+  `COSMOS_TOKENIZER_PATH_OR_NAME`: WSA-Base-only overrides; use them only when
+  loading local copies of those assets.
+- `WSA_LARGE_LOAD_TEXT_ENCODER`: WSA-Large-only option. Keep it `true` for the
+  simplest evaluation path, or set it to `false` when the exact task prompts
+  have been cached with `tools/precompute_text_embeds.py`.
 
 ## Outputs
 

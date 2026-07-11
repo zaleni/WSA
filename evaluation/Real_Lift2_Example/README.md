@@ -8,7 +8,9 @@ across two machines:
 
 ## Entry Points
 
-- `01_serve_wsa_base_real_lift2.sh`: start the WSA server.
+- `01_serve_wsa_base_real_lift2.sh`: start the WSA-Base server.
+- `01_serve_wsa_large_real_lift2.sh`: start the WSA-Large server.
+- `inference_wsa_large_sync.sh`: WSA-Large server/client launch example.
 - `run_real_lift2_inference.sh`: start the robot-side loop.
 - `02_inference_lift2.sh`: one-shot launcher for the full stack.
 - `test_remote_server.py`: connectivity smoke test.
@@ -22,7 +24,7 @@ across two machines:
 - `DISABLE_3D_TEACHER_FOR_EVAL=true` is the default.
 - `STATS_PATH` is optional; if omitted, the server uses `CHECKPOINT_DIR/stats.json`.
 
-## Quick Start
+## WSA-Base Quick Start
 
 Serve:
 
@@ -51,6 +53,14 @@ bash evaluation/Real_Lift2_Example/run_real_lift2_inference.sh
 Only set `SEND_IMAGE_HEIGHT` and `SEND_IMAGE_WIDTH` if you want a
 bandwidth/latency tradeoff.
 
+## WSA-Large Quick Start
+
+Use `inference_wsa_large_sync.sh` as the WSA-Large template. Before running it,
+replace its checkpoint, prompt, websocket URL, and text-cache paths with values
+for your deployment. For a plain-text bring-up without a cache, start
+`01_serve_wsa_large_real_lift2.sh` with
+`WSA_LARGE_LOAD_TEXT_ENCODER=true`.
+
 ## Common Options
 
 Serve side:
@@ -68,8 +78,10 @@ Serve side:
 - `STATS_KEY`: stats entry to read when the checkpoint stores multiple robot
   stats.
 - `QWEN3_VL_PRETRAINED_PATH`, `QWEN3_VL_PROCESSOR_PATH`, and
-  `COSMOS_TOKENIZER_PATH_OR_NAME`: override these only when using local copies
-  of the backbone, processor, or tokenizer.
+  `COSMOS_TOKENIZER_PATH_OR_NAME`: WSA-Base-only overrides; use them only when
+  loading local copies of those assets.
+- `WSA_LARGE_LOAD_TEXT_ENCODER` and `WSA_LARGE_TEXT_EMBED_CACHE_DIR`:
+  WSA-Large text-conditioning mode.
 
 Robot side:
 

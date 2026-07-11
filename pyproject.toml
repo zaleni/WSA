@@ -17,20 +17,31 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
-homepage = "https://github.com/zaleni/WSA"
-source = "https://github.com/zaleni/WSA"
-issues = "https://github.com/zaleni/WSA/issues"
+Homepage = "https://zaleni.github.io/WSA1/"
+Repository = "https://github.com/zaleni/WSA"
+Paper = "https://arxiv.org/abs/2607.03941"
+Models = "https://huggingface.co/collections/zaleni/wsa1"
+Issues = "https://github.com/zaleni/WSA/issues"
 
 [project]
 name = "lerobot"
-version = "1.0"
-description = "WSA Base training and inference code for robotic manipulation"
+version = "1.0.0"
+description = "Training, evaluation, and deployment code for WSA world-spatial-action robot policies"
 readme = "README.md"
-license = { text = "CC BY-NC-SA 4.0" }
+license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 authors = [
-    { name = "CAI Junhao", email = "caijunhao@pjlab.org.cn" },
-    { name = "Zeng Jia", email = "zengjia@pjlab.org.cn" },
+    { name = "Jiahao Jiang" },
+    { name = "Jianing Zhang" },
+    { name = "Zhenhan Yin" },
+    { name = "Ruidong Chen" },
+    { name = "Sen Wang" },
+    { name = "Zhaoshu Yu" },
+    { name = "Pengpeng Zeng" },
+    { name = "Xiaofeng Cao" },
+    { name = "Xuanhan Wang" },
+    { name = "Jingkuan Song" },
+    { name = "Heng Tao Shen" },
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -42,7 +53,14 @@ classifiers = [
     "Topic :: Software Development :: Build Tools",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-keywords = ["lerobot", "huggingface", "robotics",  "machine learning", "artificial intelligence"]
+keywords = [
+    "robotics",
+    "robot learning",
+    "vision-language-action",
+    "world model",
+    "embodied AI",
+    "LeRobot",
+]
 
 dependencies = [
 

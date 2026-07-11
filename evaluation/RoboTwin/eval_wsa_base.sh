@@ -46,7 +46,7 @@ echo "PROJ_ROOT  = ${PROJ_ROOT}"
 
 cd "${PROJ_ROOT}"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-PRETRAINED_CKPT="${PRETRAINED_CKPT:-zaleni/WSA-RoboTwin}"
+PRETRAINED_CKPT="${PRETRAINED_CKPT:-zaleni/WSA-Base-RoboTwin}"
 
 POLICY_TYPE="${POLICY_TYPE:-}"
 QWEN3_VL_PRETRAINED_PATH="${QWEN3_VL_PRETRAINED_PATH:-Qwen/Qwen3-VL-2B-Instruct}"
@@ -86,7 +86,7 @@ export BINARIZE_GRIPPER
 if (( $# > 1 )); then
     echo "Usage:"
     echo "  bash evaluation/RoboTwin/${SCRIPT_NAME} [ckpt_dir_or_hf_repo_id]"
-    echo "  PRETRAINED_CKPT=zaleni/WSA-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
+    echo "  PRETRAINED_CKPT=zaleni/WSA-Base-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
     exit 1
 fi
 
@@ -98,7 +98,7 @@ if [[ -z "${PRETRAINED_CKPT}" ]]; then
     echo "PRETRAINED_CKPT is empty."
     echo "Usage:"
     echo "  PRETRAINED_CKPT=/path/to/pretrained_model bash evaluation/RoboTwin/${SCRIPT_NAME}"
-    echo "  PRETRAINED_CKPT=zaleni/WSA-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
+    echo "  PRETRAINED_CKPT=zaleni/WSA-Base-RoboTwin bash evaluation/RoboTwin/${SCRIPT_NAME}"
     echo "  bash evaluation/RoboTwin/${SCRIPT_NAME} /path/to/pretrained_model"
     exit 1
 fi

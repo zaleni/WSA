@@ -5,8 +5,8 @@
 ###############################################################################
 # 1. GPU server: start WSA_Large Real_Piper serve
 
-cd ~/research/WSA
-conda activate wsa_base
+cd /path/to/WSA
+conda activate wsa
 
 # Simple bring-up path: load the text encoder and send plain text prompts.
 # For lower memory / faster startup, precompute the exact prompt first and switch
@@ -49,7 +49,7 @@ conda activate deploy
 
 INIT_POS="-90885.0 38280.0 -47982.0 518.0 68317.0 1278.0 -2100.0"
 
-WS_HOST=10.60.45.31 \
+WS_HOST=192.168.1.10 \
 WS_PORT=8102 \
 TASK_PROMPT="Sort desktop objects and place them in designated locations." \
 PUBLISH_RATE=15 \
@@ -80,6 +80,6 @@ bash evaluation/Real_Piper_Example/02_infer_wsa_large_real_piper_sync.sh
 # WSA_LARGE_TEXT_EMBED_CACHE_DIR=/path/to/WSA_Large/text_embeds
 # WSA_LARGE_CONTEXT_LEN=128
 #
-# If the server is not 10.60.45.31, change WS_HOST only.
+# Set WS_HOST to the GPU server address.
 # SEND_IMAGE_HEIGHT=480 SEND_IMAGE_WIDTH=640 bash evaluation/Real_Piper_Example/02_infer_wsa_large_real_piper_sync.sh
 # IMAGE_COLOR_MODE=rgb bash evaluation/Real_Piper_Example/02_infer_wsa_large_real_piper_sync.sh
