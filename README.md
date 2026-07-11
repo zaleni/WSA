@@ -344,12 +344,13 @@ ablation runs easier from the same codebase.
 If you find WSA useful in your research, please cite our [paper](https://arxiv.org/abs/2607.03941):
 
 ```bibtex
-@article{jiang2026wsa1,
-  title         = {{WSA}$_1$: a 3D-Centric World-Spatial-Action Model for Generalizable Robot Control},
-  author        = {Jiang, Jiahao and Zhang, Jianing and Yin, Zhenhan and Chen, Ruidong and Wang, Sen and Yu, Zhaoshu and Zeng, Pengpeng and Cao, Xiaofeng and Wang, Xuanhan and Song, Jingkuan and Shen, Heng Tao},
-  journal       = {arXiv preprint arXiv:2607.03941},
+@misc{jiang2026wsa,
+  title         = {WSA$_1$: a 3D-Centric World-Spatial-Action Model for Generalizable Robot Control},
+  author        = {Jiahao Jiang and Jianing Zhang and Zhenhan Yin and Ruidong Chen and Sen Wang and Zhaoshu Yu and Pengpeng Zeng and Xiaofeng Cao and Xuanhan Wang and Jingkuan Song and Heng Tao Shen},
   year          = {2026},
-  doi           = {10.48550/arXiv.2607.03941},
+  eprint        = {2607.03941},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.RO},
   url           = {https://arxiv.org/abs/2607.03941}
 }
 ```
