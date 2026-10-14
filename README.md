@@ -100,7 +100,6 @@ and 3D-aware **action generation**.
 
 Success rates averaged over 50 simulated ALOHA manipulation tasks in the
 randomized setting.
-WSA-B and WSA-L denote WSA₁-B (WSA-Base) and WSA₁-L (WSA-Large), respectively.
 
 | Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA-B** | **WSA-L** |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -108,8 +107,7 @@ WSA-B and WSA-L denote WSA₁-B (WSA-Base) and WSA₁-L (WSA-Large), respectivel
 
 ### LIBERO
 
-Success rates (%) across spatial, object, goal-conditioned, and long-horizon
-manipulation. Avg. is the mean over the four suites.
+Success rates (%) across spatial, object, goal, and long-horizon(Libero-10) manipulation. Avg. is the mean over the four suites.
 
 | Method | Spatial ↑ | Object ↑ | Goal ↑ | Long ↑ | Avg. ↑ |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -124,9 +122,8 @@ manipulation. Avg. is the mean over the four suites.
 
 ### Clean2Random Generalization (OOD-C2R)
 
-All models are fine-tuned **only on clean demonstrations**, then evaluated in
+All models are fine-tuned **only on clean demonstrations(2,500 episodes in total)**, then evaluated in
 both clean and randomized scenes.
-Drop is Clean − Randomized, measured in percentage points (lower is better).
 
 | Method | Clean SR (%) ↑ | Randomized SR (%) ↑ | Avg. SR (%) ↑ | Drop (pp) ↓ |
 | --- | ---: | ---: | ---: | ---: |
@@ -140,10 +137,9 @@ Drop is Clean − Randomized, measured in percentage points (lower is better).
 
 ### ARX-X5 Zero-Shot Transfer (OOD-CE)
 
-Policies are fine-tuned on ALOHA and transferred to the **unseen ARX-X5**
-without target-robot policy fine-tuning. WSA-Base uses ARX-X5 state/action
-normalization statistics and is evaluated over 45 tasks with 100 episodes per
-task and setting.
+Policies are fine-tuned on ALOHA data and transferred to the **unseen ARX-X5**
+without target-robot policy fine-tuning. Methods are evaluated over 45 tasks with 100 episodes per
+task.
 
 | Method | Clean SR (%) ↑ | Randomized SR (%) ↑ | Avg. SR (%) ↑ |
 | --- | ---: | ---: | ---: |
@@ -185,7 +181,6 @@ equally across the seven tasks.
 | **WSA-B** | 77.30 | 82.27 |
 | **WSA-L** | **80.52** | **85.21** |
 
-WSA-Large achieves **80.52%** average success and **85.21%** completeness.
 
 <details>
 <summary>Per-task real-robot results</summary>
