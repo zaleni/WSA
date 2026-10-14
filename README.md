@@ -51,6 +51,12 @@
 
 ## Table of Contents
 - [Framework](#framework)
+- [Results](#results)
+  - [RoboTwin 2.0](#robotwin-20)
+  - [LIBERO](#libero)
+  - [Clean2Random Generalization](#clean2random-generalization-ood-c2r)
+  - [ARX-X5 Zero-Shot Transfer](#arx-x5-zero-shot-transfer-ood-ce)
+  - [Real-Robot Manipulation](#real-robot-manipulation)
 - [Repository Layout](#repository-layout)
 - [Installation](#installation)
 - [Model Zoo](#model-zoo)
@@ -88,11 +94,116 @@ and 3D-aware **action generation**.
 - **Superior Performance:** State-of-the-art results across simulation
   and real-world robot manipulation tasks, achieved by our open-source model.
 
----
-🤖 Result on RoboTwin 2.0 randomized setting, averaged over 50 simulated aloha manipulation tasks:
+## Results
+
+### RoboTwin 2.0
+
+Success rates averaged over 50 simulated ALOHA manipulation tasks in the
+randomized setting.
+WSA-B and WSA-L denote WSA₁-B (WSA-Base) and WSA₁-L (WSA-Large), respectively.
+
 | Metric | π0 | π0.5 | ABot-M0 | Motus | InternVLA-A1 | LingBot-VA | Fast-WAM | **WSA-B** | **WSA-L** |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Avg. Success (Hard) | 58.40% | 76.76% | 85.08% | 87.02% | 89.64% | 91.50% | 91.78% | 92.70% | **93.14%** |
+| Avg. Success (Randomized) | 58.4% | 76.8% | 85.1% | 87.0% | 89.6% | 91.6% | 91.8% | 92.7% | **93.1%** |
+
+### LIBERO
+
+Success rates (%) across spatial, object, goal-conditioned, and long-horizon
+manipulation. Avg. is the mean over the four suites.
+
+| Method | Spatial ↑ | Object ↑ | Goal ↑ | Long ↑ | Avg. ↑ |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| π0.5 | 98.8 | 98.2 | 98.0 | 92.4 | 96.9 |
+| OpenVLA-OFT | 97.6 | 98.4 | 97.9 | 94.5 | 97.1 |
+| ABot-M0 | 98.8 | 99.8 | **99.0** | 96.6 | **98.6** |
+| Motus | 96.8 | 99.8 | 96.6 | 97.6 | 97.7 |
+| LingBot-VA | 98.5 | 99.6 | 97.2 | **98.5** | 98.5 |
+| Fast-WAM | 98.2 | **100.0** | 97.0 | 95.2 | 97.6 |
+| **WSA-B** | 98.6 | 99.6 | 97.2 | 94.2 | 97.4 |
+| **WSA-L** | **99.4** | 99.8 | 98.0 | 95.6 | 98.2 |
+
+### Clean2Random Generalization (OOD-C2R)
+
+All models are fine-tuned **only on clean demonstrations**, then evaluated in
+both clean and randomized scenes.
+Drop is Clean − Randomized, measured in percentage points (lower is better).
+
+| Method | Clean SR (%) ↑ | Randomized SR (%) ↑ | Avg. SR (%) ↑ | Drop (pp) ↓ |
+| --- | ---: | ---: | ---: | ---: |
+| π0.5 | 70.7 | 46.0 | 58.4 | 24.7 |
+| ABot-M0 | 57.4 | 30.4 | 43.9 | 27.0 |
+| RobotManip | 73.2 | 62.6 | 67.9 | 10.6 |
+| Fast-WAM | 77.8 | 1.9 | 39.9 | 75.9 |
+| InternVLA-A1 | **86.6** | 74.6 | 80.6 | 12.0 |
+| **WSA-B** | 83.8 | **77.8** | **80.8** | **6.0** |
+
+
+### ARX-X5 Zero-Shot Transfer (OOD-CE)
+
+Policies are fine-tuned on ALOHA and transferred to the **unseen ARX-X5**
+without target-robot policy fine-tuning. WSA-Base uses ARX-X5 state/action
+normalization statistics and is evaluated over 45 tasks with 100 episodes per
+task and setting.
+
+| Method | Clean SR (%) ↑ | Randomized SR (%) ↑ | Avg. SR (%) ↑ |
+| --- | ---: | ---: | ---: |
+| π0.5 | 33.5 | 19.0 | 26.3 |
+| LingBot-VA | 17.2 | 16.6 | 16.9 |
+| RobotManip | — | 42.9 | 42.9 |
+| Fast-WAM | 25.9 | 22.4 | 24.2 |
+| InternVLA-A1 | 18.1 | 17.5 | 17.8 |
+| **WSA-B** | **47.1** | **47.6** | **47.4** |
+
+<details>
+<summary>ALOHA → ARX-X5 execution examples</summary>
+
+<p align="center">
+  <img src="assets/arx_x5_zero_shot.png" alt="ALOHA and zero-shot ARX-X5 execution on Place Bread Basket, Hanging Mug, and Stack Bowls Three" width="95%">
+</p>
+
+Each task shows an ALOHA rollout followed by an ARX-X5 zero-shot rollout,
+with execution progressing from left to right.
+
+</details>
+
+### Real-Robot Manipulation
+
+Seven tabletop tasks span the **7-DoF AgileX PiPER** and **14-DoF bimanual
+ARX Lift2**. Success rate (SR) measures full-task completion; completeness (C)
+measures the fraction of task stages completed. Both metrics are averaged
+equally across the seven tasks.
+
+<p align="center">
+  <img src="assets/real_robot_results.png" alt="Success rates of five policies across seven real-robot tasks on AgileX PiPER and ARX Lift2" width="95%">
+</p>
+
+| Method | Avg. SR (%) ↑ | Avg. C (%) ↑ |
+| --- | ---: | ---: |
+| π0 | 33.73 | 43.24 |
+| π0.5 | 55.45 | 63.33 |
+| InternVLA-A1 | 38.45 | 50.37 |
+| **WSA-B** | 77.30 | 82.27 |
+| **WSA-L** | **80.52** | **85.21** |
+
+WSA-Large achieves **80.52%** average success and **85.21%** completeness.
+
+<details>
+<summary>Per-task real-robot results</summary>
+
+Each cell gives **SR / C (%)**. All policies use 30 trials per task, except
+Sweep Trash (34) and Unzip Pencil Bag (20).
+
+| Task | Robot | π0 | π0.5 | InternVLA-A1 | WSA-B | WSA-L |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| RGB Block Sorting | PiPER | 70.00 / 70.00 | 70.00 / 70.00 | 50.00 / 50.00 | 80.00 / 80.00 | 83.33 / 83.33 |
+| Object Organization | PiPER | 50.00 / 50.00 | 76.67 / 76.67 | 36.67 / 36.67 | 80.00 / 80.00 | 76.67 / 76.67 |
+| Trash Cleaning | Lift2 | 36.67 / 53.33 | 76.67 / 86.67 | 43.33 / 58.33 | 80.00 / 90.00 | 86.67 / 91.67 |
+| Pen Holder Placement | Lift2 | 6.67 / 28.33 | 70.00 / 76.67 | 33.33 / 38.33 | 86.67 / 90.00 | 76.67 / 76.67 |
+| Toy Box Organization | Lift2 | 13.33 / 18.33 | 13.33 / 26.67 | 36.67 / 48.33 | 60.00 / 71.67 | 70.00 / 85.00 |
+| Sweep Trash | Lift2 | 29.41 / 40.19 | 26.47 / 44.12 | 44.12 / 78.41 | 79.41 / 89.21 | 85.29 / 93.12 |
+| Unzip Pencil Bag | Lift2 | 30.00 / 42.50 | 55.00 / 62.50 | 25.00 / 42.50 | 75.00 / 75.00 | 85.00 / 90.00 |
+
+</details>
 
 ## Repository Layout
 
